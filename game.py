@@ -1,4 +1,5 @@
 import os
+from datetime import datetime
 import numpy as np
 
 import chainer
@@ -85,7 +86,7 @@ def judge(state):
         print("You LOSE")
     else:
         print("DRAW")
-    print("X(You):"+ str(np.sum(state==1)) + ", O(AI):" + str(np.sum(state==2)) + ", Empty:" + str(np.sum(state==0)))
+    return "X(You):"+ str(np.sum(state==1)) + ", O(AI):" + str(np.sum(state==2)) + ", Empty:" + str(np.sum(state==0))
 
 def initial_state():
     state = np.zeros([8, 8], dtype=np.int8)
@@ -117,48 +118,60 @@ def get_input(state, positions):
     else:
         return position
 
+def log(string):
+    with open("../gamelog.txt", "w") as f:
+        f.write(string)
+
 
 def main():
-	print("\n"+"*"*34)
-	print("*"*11+"Game Start!!"+"*"*11)
-	print("*"*34+"\n")
-	model = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
-	serializers.load_npz('model.npz', model)
-	pass_flg = False
-	state = initial_state()
-	show(state)
-	for play_num in range(60):
-	    positions = valid_pos(state, 1)
-	    print("Valid choice:", positions)
-	    if len(positions)>0:
-	        position = get_input(state, positions)
-	        state = turn(state, position, 1)
-	        show(state)
-	        pass_flg = False
-	    else:
-	        if pass_flg:
-	            break
-	        print("You pass.")
-	        pass_flg = True
+    gamelog = datetime.now().strftime("%Y/%m/%d %H:%M:%S")+"\n"
+    print("\n"+"*"*34)
+    print("*"*11+"Game Start!!"+"*"*11)
+    print("*"*34+"\n")
+    model = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
+    serializers.load_npz('model.npz', model)
+    pass_flg = False
+    state = initial_state()
+    show(state)
+    for play_num in range(30):
+        positions = valid_pos(state, 1)
+        print("Valid choice:", positions)
+        if len(positions)>0:
+            position = get_input(state, positions)
+            state = turn(state, position, 1)
+            show(state)
+            pass_flg = False
+            gamelog = gamelog + "[" + str(2*play_num+1) + "] You: " + str(position) + "\n"
+        else:
+            if pass_flg:
+                break
+            print("You pass.")
+            pass_flg = True
+            gamelog = gamelog + "[" + str(2*play_num+1) + "] You: Pass\n"
 
-	    positions = valid_pos(state, 2)
-	    if len(positions)>0:
-	        state_var = chainer.Variable(state.reshape(1, 1, 8, 8).astype(np.float32))
-	        action_probabilities = model.predictor(state_var).data.reshape(64)
-	        idx = np.argmax(action_probabilities)
-	        position = [idx//8+1, idx%8+1]
-	        state = turn(state, position, 2)
-	        show(state)
-	        pass_flg = False
-	    else:
-	        if pass_flg:
-	            break
-	        print("AI pass")
-	        pass_flg = True
-	print("\n"+"*"*34)
-	print("*"*12+"Game End!!"+"*"*12)
+        positions = valid_pos(state, 2)
+        if len(positions)>0:
+            state_var = chainer.Variable(state.reshape(1, 1, 8, 8).astype(np.float32))
+            action_probabilities = model.predictor(state_var).data.reshape(64)
+            idx = np.argmax(action_probabilities)
+            position = [idx//8+1, idx%8+1]
+            state = turn(state, position, 2)
+            show(state)
+            pass_flg = False
+            gamelog = gamelog + "[" + str(2*play_num+2) + "] AI: " + str(position) + "\n"
+        else:
+            if pass_flg:
+                break
+            print("AI pass")
+            pass_flg = True
+            gamelog = gamelog + "[" + str(2*play_num+2) + "] AI: Pass\n"
+    print("\n"+"*"*34)
+    print("*"*12+"Game End!!"+"*"*12)
     print("*"*34)
-	judge(state)
+    jd = judge(state)
+    print(jd)
+    gamelog = gamelog + jd + "\n"
+    log(gamelog)
 
 
 

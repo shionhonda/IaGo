@@ -95,8 +95,20 @@ def initial_state():
     state[4, 4] = 2
     return state
 
+def safeinput():
+    line = input()
+    if line.isspace():
+        return safeinput()
+    line = line.split(',')
+
+    if len(line) != 2:
+        print("Try again.")
+        return safeinput()
+    else:
+        return line
+
 def get_input(state, positions):
-    position = [int(e) for e in input().split(',')]
+    position = [int(e) for e in safeinput()]
     pos = np.array(position)-[1,1]
     # pos[0]が縦位置、pos[1]が横位置
     if not position in positions:
@@ -145,6 +157,7 @@ def main():
 	        pass_flg = True
 	print("\n"+"*"*34)
 	print("*"*12+"Game End!!"+"*"*12)
+    print("*"*34)
 	judge(state)
 
 

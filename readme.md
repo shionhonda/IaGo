@@ -1,7 +1,7 @@
 日本語は後半にあります。  
 
-# What is DeepOthello?
-DeepOthello is an Othello AI using SL(supervised learning) policy network inspired by AlphaGo.  
+# What is IaGo?
+IaGo is an Othello AI using SL(supervised learning) policy network inspired by AlphaGo.  
 It doesn't predict plays ahead, but it is still powerful.  
 
 # How to play  
@@ -9,9 +9,9 @@ It doesn't predict plays ahead, but it is still powerful.
 `$ pip install chainer`  
 
 2. Download this repository  
-`$ git clone git@github.com:shionhonda/DeepOthello.git`  
+`$ git clone git@github.com:shionhonda/IaGo.git`  
 
-3. Move to DeepOthello directory  
+3. Move to IaGo directory  
 
 4. Execute game.py  
 `$ python game.py`
@@ -22,12 +22,12 @@ The first number corresponds to the vertical position and the second to the hori
 
 # How to learn
 1. Download data from <http://meipuru-344.hatenablog.com/entry/2017/11/27/205448>  
-2. Save it as DeepOthello/data/data.txt    
+2. Save it as IaGo/data/data.txt    
 3. Execute train.py  
 `$ python train.py`  
-You need GPU to complete this step. It will take about 3 hours. 
+You need GPU to complete this step. It will take about 3 hours.
 
-# DeepOthelloとは  
+# IaGoとは  
 アルファ碁で使われているSLポリシーネットワークを利用したオセロAIです。  
 先読みはせず、現在の局面からその都度、最適な手を選んでいるだけですが、それでも強いです。  
 作成者の自分でも勝てません。  
@@ -37,9 +37,9 @@ You need GPU to complete this step. It will take about 3 hours.
 `$ pip install chainer`  
 
 2. 本リポジトリを丸ごとダウンロード  
-`$ git clone git@github.com:shionhonda/DeepOthello.git`  
+`$ git clone git@github.com:shionhonda/IaGo.git`  
 
-3. DeepOthelloディレクトリに移動  
+3. IaGoディレクトリに移動  
 
 4. game.pyを実行  
 `$ python game.py`
@@ -50,7 +50,7 @@ You need GPU to complete this step. It will take about 3 hours.
 
 # 学習させたいとき
 <http://meipuru-344.hatenablog.com/entry/2017/11/27/205448>のデータをダウンロードして、  
-DeepOthello/data/data.txt  
+IaGo/data/data.txt  
 として保存し、  
 `$ python train.py`  
 を実行してください。今のところGPUが無いと計算できません。3時間くらいで終わると思います。

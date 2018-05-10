@@ -118,13 +118,14 @@ def get_input(state, positions):
     else:
         return position
 
-def log(string):
-    with open("../gamelog.txt", "w") as f:
-        f.write(string)
+def log(date, string):
+    with open("./gamelog/"+date+".txt", "w") as f:
+        f.write(date+"\n"+string)
 
 
 def main():
-    gamelog = datetime.now().strftime("%Y/%m/%d %H:%M:%S")+"\n"
+    gamelog = ""
+    date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     print("\n"+"*"*34)
     print("*"*11+"Game Start!!"+"*"*11)
     print("*"*34+"\n")
@@ -133,7 +134,9 @@ def main():
     pass_flg = False
     state = initial_state()
     show(state)
-    for play_num in range(30):
+    stone_num = 4
+    play_num = 1
+    while (stone_num<64):
         positions = valid_pos(state, 1)
         print("Valid choice:", positions)
         if len(positions)>0:
@@ -141,13 +144,15 @@ def main():
             state = turn(state, position, 1)
             show(state)
             pass_flg = False
-            gamelog = gamelog + "[" + str(2*play_num+1) + "] You: " + str(position) + "\n"
+            gamelog = gamelog + "[" + str(play_num) + "] You: " + str(position) + "\n"
+            stone_num += 1
         else:
             if pass_flg:
                 break
             print("You pass.")
             pass_flg = True
-            gamelog = gamelog + "[" + str(2*play_num+1) + "] You: Pass\n"
+            gamelog = gamelog + "[" + str(play_num) + "] You: Pass\n"
+        play_num += 1
 
         positions = valid_pos(state, 2)
         if len(positions)>0:
@@ -158,20 +163,23 @@ def main():
             state = turn(state, position, 2)
             show(state)
             pass_flg = False
-            gamelog = gamelog + "[" + str(2*play_num+2) + "] AI: " + str(position) + "\n"
+            gamelog = gamelog + "[" + str(play_num) + "] AI: " + str(position) + "\n"
+            stone_num += 1
         else:
             if pass_flg:
                 break
             print("AI pass")
             pass_flg = True
-            gamelog = gamelog + "[" + str(2*play_num+2) + "] AI: Pass\n"
+            gamelog = gamelog + "[" + str(play_num) + "] AI: Pass\n"
+        play_num += 1
+
     print("\n"+"*"*34)
     print("*"*12+"Game End!!"+"*"*12)
     print("*"*34)
     jd = judge(state)
     print(jd)
     gamelog = gamelog + jd + "\n"
-    log(gamelog)
+    log(date, gamelog)
 
 
 

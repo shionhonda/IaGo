@@ -1,6 +1,7 @@
 import os
 from datetime import datetime
 import numpy as np
+import random
 
 import chainer
 import chainer.links as L
@@ -9,179 +10,165 @@ from chainer.functions.loss.softmax_cross_entropy import softmax_cross_entropy
 
 import SLPolicy
 
-# 1ターンシミュレート
-# position  y, x
-# color  1:white, 2:black
-def turn(state, position, color):
-    pos = np.array(position)-[1,1]
-    # pos[0]が縦位置、pos[1]が横位置
-    state[pos[0], pos[1]] = color
+class Game:
 
-    dys = [-1, -1, -1, 0, 0, 1, 1, 1]
-    dxs = [-1, 0, 1, -1, 1, -1, 0, 1]
-    for dy,dx in zip(dys, dxs):
-        if pos[0]+dy<0 or pos[0]+dy>7 or pos[1]+dx<0 or pos[1]+dx>7:
-            continue
-        if state[pos[0]+dy, pos[1]+dx]+color!=3:
-            continue
-        ref = pos + [dy, dx]
-        while(state[ref[0], ref[1]]+color==3):
-            ref += [dy, dx]
-            if ref[0]<0 or ref[0]>7 or ref[1]<0 or ref[1]>7:
-                break
-        if ref[0]>=0 and ref[0]<=7 and ref[1]>=0 and ref[1]<=7:
-            if state[ref[0], ref[1]]==color:
-                ref -= [dy, dx]
-                while(state[ref[0], ref[1]]+color==3):
-                    state[ref[0], ref[1]] = 3-state[ref[0], ref[1]]
-                    ref -= [dy, dx]
-    return state
+    def __init__(self):
+        # Initialize board state
+        self.state = np.zeros([8, 8], dtype=np.int8)
+        self.state[4, 3] = 1
+        self.state[3, 4] = 1
+        self.state[3, 3] = 2
+        self.state[4, 4] = 2
+        # Initialize game variables
+        self.stone_num = 4
+        self.play_num = 1
+        self.pass_flg = False
+        self.date = datetime.now().strftime("%Y-%m-%d-%H-%M")
+        self.gamelog = self.date + "\n"
+        # Load model
+        self.model = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
+        serializers.load_npz('model.npz', self.model)
 
-def valid_pos(state, color):
-    positions = []
-    for i in range(8):
-        for j in range(8):
-            if state[i, j] != 0:
+    # Place a stone and turn all the stones
+    # Position y:vertical, x:horizontal
+    # Color  1:white, 2:black
+    def place_stone(self, position, color):
+        # Place the stone
+        pos = np.array(position)-[1,1]
+        self.state[pos[0], pos[1]] = color
+        # Turn stones
+        dys = [-1, -1, -1, 0, 0, 1, 1, 1] # Search direction
+        dxs = [-1, 0, 1, -1, 1, -1, 0, 1] # Search direction
+        for dy,dx in zip(dys, dxs):
+            if pos[0]+dy<0 or pos[0]+dy>7 or pos[1]+dx<0 or pos[1]+dx>7:
                 continue
-            # Search 8 directions
-            dys = [-1, -1, -1, 0, 0, 1, 1, 1]
-            dxs = [-1, 0, 1, -1, 1, -1, 0, 1]
-            for dy,dx in zip(dys, dxs):
-                if i+dy<0 or i+dy>7 or j+dx<0 or j+dx>7:
+            if self.state[pos[0]+dy, pos[1]+dx]+color!=3:
+                continue
+            ref = pos + [dy, dx]
+            while(self.state[ref[0], ref[1]]+color==3):
+                ref += [dy, dx]
+                if ref[0]<0 or ref[0]>7 or ref[1]<0 or ref[1]>7:
+                    break
+            if ref[0]>=0 and ref[0]<=7 and ref[1]>=0 and ref[1]<=7:
+                if self.state[ref[0], ref[1]]==color:
+                    ref -= [dy, dx]
+                    while(self.state[ref[0], ref[1]]+color==3):
+                        self.state[ref[0], ref[1]] = 3-self.state[ref[0], ref[1]]
+                        ref -= [dy, dx]
+
+    def valid_pos(self, color):
+        positions = []
+        for i in range(8):
+            for j in range(8):
+                if self.state[i, j] != 0:
                     continue
-                if state[i+dy, j+dx]+color!=3:
-                    continue
-                ref = np.array([i+dy, j+dx])
-                while(state[ref[0], ref[1]]+color==3):
-                    ref += [dy, dx]
-                    if ref[0]<0 or ref[0]>7 or ref[1]<0 or ref[1]>7:
-                        break
-                if ref[0]>=0 and ref[0]<=7 and ref[1]>=0 and ref[1]<=7:
-                    if state[ref[0], ref[1]]==color:
-                        positions.append([i+1,j+1])
-                        break
-    return positions
+                # Search 8 directions
+                dys = [-1, -1, -1, 0, 0, 1, 1, 1]
+                dxs = [-1, 0, 1, -1, 1, -1, 0, 1]
+                for dy,dx in zip(dys, dxs):
+                    if i+dy<0 or i+dy>7 or j+dx<0 or j+dx>7:
+                        continue
+                    if self.state[i+dy, j+dx]+color!=3:
+                        continue
+                    ref = np.array([i+dy, j+dx])
+                    while(self.state[ref[0], ref[1]]+color==3):
+                        ref += [dy, dx]
+                        if ref[0]<0 or ref[0]>7 or ref[1]<0 or ref[1]>7:
+                            break
+                    if ref[0]>=0 and ref[0]<=7 and ref[1]>=0 and ref[1]<=7:
+                        if self.state[ref[0], ref[1]]==color:
+                            positions.append([i+1,j+1])
+                            break
+        return positions
 
+    def show(self):
+        print("   1   2   3   4   5   6   7   8   ")
+        for i in range(8):
+            print(" " + "-"*34)
+            s = str(self.state[i]).replace(" ", "|").replace("[", "|").replace("]", "|")
+            s= s.replace("0", "   ").replace("1", " X ").replace("2", " O ")
+            print(str(i+1)+s)
+        print(" " + "-"*33)
+        print("X(You):"+ str(np.sum(self.state==1)) + ", O(AI):" + str(np.sum(self.state==2))\
+        + ", Empty:" + str(np.sum(self.state==0)))
+        print("\n")
 
-def show_line(s, i):
-    s = str(s).replace(" ", "|").replace("[", "|").replace("]", "|")
-    s= s.replace("0", "   ").replace("1", " X ").replace("2", " O ")
-    print(str(i+1)+s)
+    def judge(self):
+        you = np.sum(self.state==1)
+        ai = np.sum(self.state==2)
+        if you>ai:
+            print("You WIN!")
+        elif you<ai:
+            print("You LOSE")
+        else:
+            print("DRAW")
+        return "X(You):"+ str(you) + ", O(AI):" + str(ai) + ", Empty:" + str(np.sum(self.state==0))
 
-def show(state):
-    print("   1   2   3   4   5   6   7   8   ")
-    for i in range(8):
-        print(" " + "-"*34)
-        show_line(state[i], i)
-    print(" " + "-"*33)
-    print("X(You):"+ str(np.sum(state==1)) + ", O(AI):" + str(np.sum(state==2)) + ", Empty:" + str(np.sum(state==0)))
-    print("\n")
+    def safeinput(self):
+        line = input()
+        if line.isspace():
+            return safeinput()
+        line = line.split(',')
+        if len(line) != 2:
+            print("Try again.")
+            return safeinput()
+        else:
+            return line
 
-def judge(state):
-    you = np.sum(state==1)
-    ai = np.sum(state==2)
-    if you>ai:
-        print("You WIN!")
-    elif you<ai:
-        print("You LOSE")
-    else:
-        print("DRAW")
-    return "X(You):"+ str(np.sum(state==1)) + ", O(AI):" + str(np.sum(state==2)) + ", Empty:" + str(np.sum(state==0))
-
-def initial_state():
-    state = np.zeros([8, 8], dtype=np.int8)
-    state[4, 3] = 1
-    state[3, 4] = 1
-    state[3, 3] = 2
-    state[4, 4] = 2
-    return state
-
-def safeinput():
-    line = input()
-    if line.isspace():
-        return safeinput()
-    line = line.split(',')
-
-    if len(line) != 2:
-        print("Try again.")
-        return safeinput()
-    else:
-        return line
-
-def get_input(state, positions):
-    position = [int(e) for e in safeinput()]
-    pos = np.array(position)-[1,1]
-    # pos[0]が縦位置、pos[1]が横位置
-    if not position in positions:
-        print("This position is invalid. Choose another position")
-        return get_input(state, positions)
-    else:
+    def get_position(self, color, positions):
+        if color==1:
+            position = [int(e) for e in self.safeinput()]
+            if not position in positions:
+                print("This position is invalid. Choose another position")
+                return self.get_position(self, color, positions)
+        else:
+            state_var = chainer.Variable(self.state.reshape(1, 1, 8, 8).astype(np.float32))
+            action_probabilities = self.model.predictor(state_var).data.reshape(64)
+            idx = np.argmax(action_probabilities)
+            position = [idx//8+1, idx%8+1]
+            if not position in positions:
+                position = random.choice(positions)
         return position
 
-def log(date, string):
-    with open("./gamelog/"+date+".txt", "w") as f:
-        f.write(date+"\n"+string)
-
+    def turn(self, color):
+        players = ["You", "AI"]
+        positions = self.valid_pos(color)
+        print("Valid choice:", positions)
+        if len(positions)>0:
+            position = self.get_position(color, positions)
+            self.place_stone(position, color)
+            self.show()
+            self.pass_flg = False
+            self.gamelog += "[" + str(self.play_num) + "]" + players[color-1]\
+             + ": " + str(position) + "\n"
+            self.stone_num += 1
+        else:
+            if self.pass_flg:
+                self.stone_num = 64
+            print(players[color-1] + " pass.")
+            self.pass_flg = True
+            self.gamelog += "[" + str(self.play_num) + "]" + players[color-1] + ": Pass\n"
+        self.play_num += 1
 
 def main():
-    gamelog = ""
-    date = datetime.now().strftime("%Y-%m-%d-%H-%M-%S")
     print("\n"+"*"*34)
     print("*"*11+"Game Start!!"+"*"*11)
     print("*"*34+"\n")
-    model = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
-    serializers.load_npz('model.npz', model)
-    pass_flg = False
-    state = initial_state()
-    show(state)
-    stone_num = 4
-    play_num = 1
-    while (stone_num<64):
-        positions = valid_pos(state, 1)
-        print("Valid choice:", positions)
-        if len(positions)>0:
-            position = get_input(state, positions)
-            state = turn(state, position, 1)
-            show(state)
-            pass_flg = False
-            gamelog = gamelog + "[" + str(play_num) + "] You: " + str(position) + "\n"
-            stone_num += 1
-        else:
-            if pass_flg:
-                break
-            print("You pass.")
-            pass_flg = True
-            gamelog = gamelog + "[" + str(play_num) + "] You: Pass\n"
-        play_num += 1
+    game = Game()
+    game.show()
 
-        positions = valid_pos(state, 2)
-        if len(positions)>0:
-            state_var = chainer.Variable(state.reshape(1, 1, 8, 8).astype(np.float32))
-            action_probabilities = model.predictor(state_var).data.reshape(64)
-            idx = np.argmax(action_probabilities)
-            position = [idx//8+1, idx%8+1]
-            state = turn(state, position, 2)
-            show(state)
-            pass_flg = False
-            gamelog = gamelog + "[" + str(play_num) + "] AI: " + str(position) + "\n"
-            stone_num += 1
-        else:
-            if pass_flg:
-                break
-            print("AI pass")
-            pass_flg = True
-            gamelog = gamelog + "[" + str(play_num) + "] AI: Pass\n"
-        play_num += 1
+    while(game.stone_num<64):
+        game.turn(1)
+        game.turn(2)
 
     print("\n"+"*"*34)
     print("*"*12+"Game End!!"+"*"*12)
     print("*"*34)
-    jd = judge(state)
+    jd = game.judge()
     print(jd)
-    gamelog = gamelog + jd + "\n"
-    log(date, gamelog)
-
-
+    self.gameleog += jd + "\n"
+    with open("./gamelog/"+self.date+".txt", "w") as f:
+        f.write(self.gamelog)
 
 if __name__ == '__main__':
     main()

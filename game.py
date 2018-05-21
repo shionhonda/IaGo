@@ -12,7 +12,7 @@ class Game:
 
     def __init__(self):
         # Initialize board state
-        self.state = np.zeros([8, 8], dtype=np.int8)
+        self.state = np.zeros([8, 8], dtype=np.float32)
         self.state[4, 3] = 1
         self.state[3, 4] = 1
         self.state[3, 3] = 2
@@ -22,7 +22,7 @@ class Game:
         self.play_num = 1
         self.pass_flg = False
         self.date = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        self.gamelog = self.date + "\n"
+        self.gamelog = "IaGo v1.1\n" + self.date + "\n"
         # Load model
         self.model = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
         serializers.load_npz('model.npz', self.model)
@@ -134,7 +134,7 @@ class Game:
         # AI's turn
         else:
             # Predict position to place stone
-            state_var = chainer.Variable(self.state.reshape(1, 1, 8, 8).astype(np.float32))
+            state_var = chainer.Variable(self.state.reshape(1, 1, 8, 8))
             action_probabilities = self.model.predictor(state_var).data.reshape(64)
             idx = np.argmax(action_probabilities)
             position = [idx//8+1, idx%8+1]
@@ -164,6 +164,15 @@ class Game:
             self.gamelog += "[" + str(self.play_num) + "]" + players[color-1] + ": Pass\n"
         self.play_num += 1
 
+    # Save gamelog
+    def save_gamelog(self):
+        filename = "./gamelog/"+self.date+".txt"
+        file_path = os.path.dirname(filename)
+        if not os.path.exists(file_path):
+            os.makedirs(file_path)
+        with open(filename, 'w') as f:
+            f.write(self.gamelog)
+
 # Whole game
 def main():
     print("\n"+"*"*34)
@@ -182,8 +191,7 @@ def main():
     jd = game.judge()
     print(jd)
     game.gamelog += jd + "\n"
-    with open("./gamelog/"+game.date+".txt", "w") as f:
-        f.write(game.gamelog)
+    game.save_gamelog()
 
 if __name__ == '__main__':
     main()

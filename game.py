@@ -92,7 +92,7 @@ class Game:
         for i in range(8):
             print(" " + "-"*34)
             s = str(self.state[i]).replace(" ", "|").replace("[", "|").replace("]", "|")
-            s= s.replace("0", "   ").replace("1", " X ").replace("2", " O ")
+            s= s.replace("0", "   ").replace("1", " X ").replace("2", " O ").replace(".", "")
             print(str(i+1)+s)
         print(" " + "-"*33)
         print("X(You):"+ str(np.sum(self.state==1)) + ", O(AI):" + str(np.sum(self.state==2))\

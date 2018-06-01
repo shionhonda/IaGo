@@ -13,8 +13,14 @@ class SelfGame(Game):
             self.state = self.state*(tmp-self.state)*(tmp-self.state)/2
 
         # Predict position to place stone
-        state_var = chainer.Variable(self.state.reshape(1, 1, 8, 8))
-        action_probabilities = self.model.predictor(state_var).data.reshape(64)
+        if color==2:
+            X = np.stack([self.state==1, self.state==2], axis=2)
+            state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
+            action_probabilities = self.model2.predictor(state_var).data.reshape(64)
+        else:
+            X = np.stack([self.state==1, self.state==2], axis=2)
+            state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
+            action_probabilities = self.model.predictor(state_var).data.reshape(64)
         idx = np.argmax(action_probabilities)
         position = [idx//8+1, idx%8+1]
         if not position in positions:

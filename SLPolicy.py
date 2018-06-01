@@ -18,20 +18,20 @@ class Block(chainer.Chain):
 
 class SLPolicyNet(chainer.Chain):
     '''Block and dropout'''
-    def __init__(self, class_labels=10):
+    def __init__(self):
         ksize = 3
         super(SLPolicyNet, self).__init__()
         with self.init_scope():
             self.block1 = Block(64, ksize)
-            self.block2 = Block(64, ksize)
+            self.block2 = Block(128, ksize)
             self.block3 = Block(128, ksize)
             self.block4 = Block(128, ksize)
-            self.block5 = Block(256, ksize)
-            self.block6 = Block(256, ksize)
-            self.block7 = Block(256, ksize)
-            self.block8 = Block(256, ksize)
-            self.fc1 = L.Linear(None, 128, nobias=True)
-            self.fc2 = L.Linear(None, 64, nobias=True)
+            self.block5 = Block(128, ksize)
+            self.block6 = Block(128, ksize)
+            self.block7 = Block(128, ksize)
+            self.block8 = Block(128, ksize)
+            self.conv9 = L.Convolution2D(128, 1, 1, nobias=True)
+            self.bias10 = L.Bias(shape=(64))
 
     def __call__(self, x):
         h = self.block1(x)
@@ -42,6 +42,8 @@ class SLPolicyNet(chainer.Chain):
         h = self.block6(h)
         h = self.block7(h)
         h = self.block8(h)
-        h = F.relu(self.fc1(h))
-        h = self.fc2(h)
+        h = self.conv9(h)
+        h = F.reshape(h, (-1,64))
+        h = self.bias10(h)
+
         return h

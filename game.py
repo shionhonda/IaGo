@@ -26,6 +26,8 @@ class Game:
         # Load model
         self.model = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
         serializers.load_npz('model.npz', self.model)
+        self.model2 = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
+        serializers.load_npz('model.npz', self.model2)
 
     # Return True if the index is out of the board
     def is_outside(self, pos):
@@ -134,7 +136,8 @@ class Game:
         # AI's turn
         else:
             # Predict position to place stone
-            state_var = chainer.Variable(self.state.reshape(1, 1, 8, 8))
+            X = np.stack([self.state==1, self.state==2], axis=2)
+            state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
             action_probabilities = self.model.predictor(state_var).data.reshape(64)
             idx = np.argmax(action_probabilities)
             position = [idx//8+1, idx%8+1]

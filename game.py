@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
 import numpy as np
-import random
 import chainer
 import chainer.links as L
 from chainer import training, serializers, cuda, optimizers, Variable
@@ -22,10 +21,10 @@ class Game:
         self.play_num = 1
         self.pass_flg = False
         self.date = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        self.gamelog = "IaGo v1.1\n" + self.date + "\n"
+        self.gamelog = "IaGo v1.3\n" + self.date + "\n"
         # Load model
-        self.model = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
-        serializers.load_npz('model.npz', self.model)
+        self.model1 = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
+        serializers.load_npz('model.npz', self.model1)
         self.model2 = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
         serializers.load_npz('model.npz', self.model2)
 
@@ -138,12 +137,14 @@ class Game:
             # Predict position to place stone
             X = np.stack([self.state==1, self.state==2], axis=2)
             state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
-            action_probabilities = self.model.predictor(state_var).data.reshape(64)
-            idx = np.argmax(action_probabilities)
+            action_probabilities = self.model1.predictor(state_var).data.reshape(64)
+            #print(action_probabilities)
+            action_probabilities += np.min(action_probabilities) # Add bias to make all components non-negative
+            idx = np.random.choice(64, p=action_probabilities/sum(action_probabilities))
             position = [idx//8+1, idx%8+1]
             if not position in positions:
-                # Choose randomly if prediction is illegal (very rare)
-                position = random.choice(positions)
+                # Choose again if prediction is illegal
+                return self.get_position(2, positions)
         return position
 
     # Things to do in one turn

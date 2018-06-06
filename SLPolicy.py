@@ -2,11 +2,7 @@ import chainer
 import chainer.functions as F
 import chainer.links as L
 
-import warnings
-warnings.filterwarnings('ignore')
-
 class Block(chainer.Chain):
-    '''Convolution and ReLU'''
     def __init__(self, out_channels, ksize, pad=1):
         super(Block, self).__init__()
         with self.init_scope():
@@ -17,7 +13,6 @@ class Block(chainer.Chain):
         return F.relu(h)
 
 class SLPolicyNet(chainer.Chain):
-    '''Block and dropout'''
     def __init__(self):
         ksize = 3
         super(SLPolicyNet, self).__init__()

@@ -1,5 +1,4 @@
 import numpy as np
-import random
 import chainer
 from chainer import Variable
 from game import Game
@@ -13,19 +12,17 @@ class SelfGame(Game):
             self.state = self.state*(tmp-self.state)*(tmp-self.state)/2
 
         # Predict position to place stone
-        if color==2:
-            X = np.stack([self.state==1, self.state==2], axis=2)
-            state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
-            action_probabilities = self.model2.predictor(state_var).data.reshape(64)
-        else:
-            X = np.stack([self.state==1, self.state==2], axis=2)
-            state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
-            action_probabilities = self.model.predictor(state_var).data.reshape(64)
-        idx = np.argmax(action_probabilities)
+        X = np.stack([self.state==1, self.state==2], axis=2)
+        state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
+        action_probabilities = self.model1.predictor(state_var).data.reshape(64)
+        #print(action_probabilities)
+        action_probabilities += np.min(action_probabilities) # Add bias to make all components non-negative
+        idx = np.random.choice(64, p=action_probabilities/sum(action_probabilities))
         position = [idx//8+1, idx%8+1]
         if not position in positions:
-            # Choose randomly if prediction is illegal (very rare)
-            position = random.choice(positions)
+            # Choose again if prediction is illegal
+            return self.get_position_self(color, positions)
+            # position = random.choice(positions)
         return position
 
     def show_self(self):

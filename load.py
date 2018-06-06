@@ -22,6 +22,7 @@ def transpose(action):
     return y_*8+x_
 
 def main():
+    print("Loading data... (it might take a few minutes)")
     with open("data/data.txt", "r") as f:
         data = f.readlines()
 
@@ -48,6 +49,7 @@ def main():
     del B_data, W_data # Memory release
 
     # Data augmentation
+    print("Augmenting data... (it might take a few minutes)")
     S = states
     A = actions
     # Rotate
@@ -69,10 +71,21 @@ def main():
         A = np.concatenate([A, actions], axis=0)
     del states, actions
 
-    # Save data
-    np.save('data/states.npy', S)
-    np.save('data/actions.npy', A)
-    del S, A
+    # Shuffle and save data
+    print("Saving data...")
+    data_size = A.shape[0]
+    test_size = 1000
+    rands = np.random.choice(data_size, data_size, replace=False)
+    S_test = S[rands[:test_size],:,:]
+    A_test = A[rands[:test_size]]
+    np.save('data/states_test.npy', S_test)
+    np.save('data/actions_test.npy', A_test)
+    del S_test, A_test
+    S_train = S[rands[test_size:],:,:]
+    A_train = A[rands[test_size:]]
+    np.save('data/states.npy', S_train)
+    np.save('data/actions.npy', A_train)
+    del S, A, S_train, A_train
 
 if __name__ == '__main__':
     main()

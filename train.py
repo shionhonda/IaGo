@@ -56,8 +56,8 @@ def main():
 			f.write(str(loss)+", \n")
 		# Save models
 		model.to_cpu()
-		serializers.save_npz('model.npz', model)
-		serializers.save_npz('optimizer.npz', optimizer)
+		serializers.save_npz('models/sl_model.npz', model)
+		serializers.save_npz('models/sl_optimizer.npz', optimizer)
 
 if __name__ == '__main__':
     main()

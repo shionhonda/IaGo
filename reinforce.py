@@ -14,7 +14,7 @@ import rl_self_play
 def main():
 	# Set the number of episodes
     parser = argparse.ArgumentParser(description='IaGo:')
-    parser.add_argument('--set', '-s', type=int, default=1, help='Number of game sets played to train')
+    parser.add_argument('--set', '-s', type=int, default=10, help='Number of game sets played to train')
     args = parser.parse_args()
     N = 10
 
@@ -29,6 +29,8 @@ def main():
 
     for set in tqdm(range(args.set)):
         model1.to_gpu()
+        agent = REINFORCE(model1, optimizer, batchsize=N,
+        backward_separately=False)
         Z = np.zeros(2*N)
         for i in tqdm(range(N)):
             # Randomly choose competitor model from reinforced models
@@ -43,8 +45,9 @@ def main():
             Z[i+N] = -game()
         print(Z)
         '''Update model1'''
-        if set%50==0:
-            serializers.save_npz("./models/rl/"+str(set//50)+".npz")
+        agent.stop_episode_and_train(game.state, Z[0], done=True)
+        if set%20==0:
+            serializers.save_npz("./models/rl/"+str(set//20)+".npz")
 
 if __name__ == '__main__':
     main()

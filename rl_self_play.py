@@ -17,6 +17,7 @@ class Game:
         self.state[3, 3] = 2
         self.state[4, 4] = 2
         # Initialize game variables
+        self.states = []
         self.stone_num = 4
         self.play_num = 1
         self.pass_flg = False
@@ -28,6 +29,8 @@ class Game:
     def __call__(self):
         while(self.stone_num<64):
             self.turn(1)
+            self.play_num += 1
+            self.states.append(self.state)
             self.turn(2)
         return self.judge()
 
@@ -137,4 +140,3 @@ class Game:
             if self.pass_flg:
                 self.stone_num = 64 # Game over when two players pass consecutively
             self.pass_flg = True
-        self.play_num += 1

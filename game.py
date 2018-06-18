@@ -138,9 +138,8 @@ class Game:
             X = np.stack([self.state==1, self.state==2], axis=2)
             state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
             action_probabilities = self.model1.predictor(state_var).data.reshape(64)
-            print(action_probabilities)
-            action_probabilities += np.min(action_probabilities) # Add bias to make all components non-negative
-            idx = np.random.choice(64, p=action_probabilities/sum(action_probabilities))
+            action_probabilities -= np.min(action_probabilities) # Add bias to make all components non-negative
+            idx = np.random.choice(64, p=action_probabilities/np.sum(action_probabilities))
             position = [idx//8+1, idx%8+1]
             if not position in positions:
                 # Choose again if prediction is illegal

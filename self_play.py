@@ -20,8 +20,8 @@ class SelfGame(Game):
         else:
             action_probabilities = self.model2.predictor(state_var).data.reshape(64)
 
-        action_probabilities += np.min(action_probabilities) # Add bias to make all components non-negative
-        idx = np.random.choice(64, p=action_probabilities/sum(action_probabilities))
+        action_probabilities -= np.min(action_probabilities) # Add bias to make all components non-negative
+        idx = np.random.choice(64, p=action_probabilities/np.sum(action_probabilities))
         position = [idx//8+1, idx%8+1]
         if not position in positions:
             # Choose again if prediction is illegal

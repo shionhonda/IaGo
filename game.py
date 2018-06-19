@@ -91,9 +91,9 @@ class Game:
     def show(self):
         print("   1   2   3   4   5   6   7   8   ")
         for i in range(8):
-            print(" " + "-"*34)
-            s = str(self.state[i]).replace(" ", "|").replace("[", "|").replace("]", "|")
-            s= s.replace("0", "   ").replace("1", " X ").replace("2", " O ").replace(".", "")
+            print(" " + "-"*33)
+            s = str(self.state[i]).replace(" ", "").replace(".", "|").replace("[", "|").replace("]", "")
+            s= s.replace("0", "   ").replace("1", " X ").replace("2", " O ")
             print(str(i+1)+s)
         print(" " + "-"*33)
         print("X(You):"+ str(np.sum(self.state==1)) + ", O(AI):" + str(np.sum(self.state==2))\

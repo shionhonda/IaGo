@@ -14,7 +14,7 @@ import SLPolicy
 import rl_self_play
 
 def main():
-	# Set the number of episodes
+	# Set the number of sets
     parser = argparse.ArgumentParser(description='IaGo:')
     parser.add_argument('--set', '-s', type=int, default=1000, help='Number of game sets played to train')
     args = parser.parse_args()

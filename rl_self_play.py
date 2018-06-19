@@ -1,9 +1,7 @@
 import numpy as np
-import glob
 import chainer
 import chainer.links as L
-from chainer import training, serializers, cuda, optimizers, Variable
-from chainer.functions.loss.softmax_cross_entropy import softmax_cross_entropy
+from chainer import cuda, Variable
 from chainer.cuda import cupy as cp
 import SLPolicy
 
@@ -115,7 +113,6 @@ class Game:
         X = cp.stack([self.state==1, self.state==2], axis=2)
         state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(cp.float32))
         if color==1:
-
             action_probabilities = chainer.cuda.to_cpu(self.model1.predictor(state_var).data.reshape(64))
         else:
             action_probabilities = chainer.cuda.to_cpu(self.model2.predictor(state_var).data.reshape(64))
@@ -126,7 +123,6 @@ class Game:
         if not position in positions:
             # Choose again if prediction is illegal
             return self.get_position(color, positions)
-            # position = random.choice(positions)
         return position
 
     # Things to do in one turn

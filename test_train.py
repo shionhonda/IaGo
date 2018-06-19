@@ -37,13 +37,8 @@ def main():
     for set in tqdm(range(args.set)):
         result = 0
         for i in range(2*N):
-            if i%2==0:
-                game = rl_self_play.Game(model1, model2)
-                reward = game()
-            else:
-                # Switch head and tail
-                game = rl_self_play.Game(model2, model1)
-                reward = -game()
+            game = rl_self_play.Game(model1, model2)
+            reward = game()
             result += reward
             # Update model if i reaches batchsize 2*N
             X = np.array(game.states)

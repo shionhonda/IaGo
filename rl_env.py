@@ -5,31 +5,77 @@ from chainer import cuda, Variable
 from chainer.cuda import cupy as cp
 import SLPolicy
 
-class Game:
+class GameEnv:
 
     def __init__(self, model1, model2):
         # Initialize board state
-        self.state = cp.zeros([8, 8], dtype=cp.float32)
+        self.state = cp.zeros([8, 8], dtype=np.float32)
         self.state[4, 3] = 1
         self.state[3, 4] = 1
         self.state[3, 3] = 2
         self.state[4, 4] = 2
         # Initialize game variables
-        self.states = []
         self.stone_num = 4
-        self.play_num = 1
         self.pass_flg = False
         # Initialize model
         self.model1 = model1
         self.model2 = model2
 
+    def reset(self):
+        # Initialize board state
+        self.state = np.zeros([8, 8], dtype=np.float32)
+        self.state[4, 3] = 1
+        self.state[3, 4] = 1
+        self.state[3, 3] = 2
+        self.state[4, 4] = 2
+        # Initialize game variables
+        self.stone_num = 4
+        self.pass_flg = False
+
+        X = self.state
+        X = np.stack([self.state==1, self.state==2], axis=0).astype(np.float32)
+        obs = chainer.Variable(X.reshape(2,1,8,8).transpose(1,0,2,3))
+        return obs
+
+    def step(self, action):
+        done = False
+        positions = self.valid_pos(1)
+        if len(positions)>0:
+            position = [action//8+1, action%8+1]
+            if not position in positions:
+                # Choose randomly if prediction is illegal (very rare)
+                position = np.random.choice(positions)
+            self.place_stone(position, 1)
+            self.stone_num += 1
+            self.pass_flg = False
+        else:
+            if self.pass_flg:
+                done = True # Game over when two players pass consecutively
+            self.pass_flg = True
+
+        # Competitor's turn
+        positions = self.valid_pos(2)
+        if len(positions)>0:
+            position = self.get_position(2, positions)
+            self.place_stone(position, 2)
+            self.stone_num += 1
+            self.pass_flg = False
+        else:
+            if self.pass_flg:
+                done = True # Game over when two players pass consecutively
+            self.pass_flg = True
+
+        if self.stone_num>=64:
+            done = True
+        X = self.states
+        X = np.stack([X==1, X==2], axis=3)
+        obs = chainer.Variable(X.reshape(-1, 2, 8, 8).astype(np.float32))
+
+        return obs, 0, done, None
+
+
     # Whole game
     def __call__(self):
-        while(self.stone_num<64):
-            self.turn(1)
-            self.play_num += 1
-            self.states.append(self.state)
-            self.turn(2)
         return self.judge()
 
     # Return True if the index is out of the board
@@ -93,8 +139,8 @@ class Game:
 
     # Judge game winner
     def judge(self):
-        you = cp.sum(self.state==1)
-        ai = cp.sum(self.state==2)
+        you = np.sum(self.state==1)
+        ai = np.sum(self.state==2)
         if you>ai:
             return 1
         elif you<ai:
@@ -106,16 +152,16 @@ class Game:
     def get_position(self, color, positions):
         if color==1:
             # AI1's turn
-            tmp = 3*cp.ones([8,8], dtype=cp.float32)
+            tmp = 3*np.ones([8,8], dtype=np.float32)
             self.state = self.state*(tmp-self.state)*(tmp-self.state)/2
 
         # Predict position to place stone
-        X = cp.stack([self.state==1, self.state==2], axis=2)
-        state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(cp.float32))
+        X = np.stack([self.state==1, self.state==2], axis=2)
+        state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
         if color==1:
-            action_probabilities = chainer.cuda.to_cpu(self.model1.predictor(state_var).data.reshape(64))
+            action_probabilities = self.model1.predictor(state_var).data.reshape(64)
         else:
-            action_probabilities = chainer.cuda.to_cpu(self.model2.predictor(state_var).data.reshape(64))
+            action_probabilities = self.model2.predictor(state_var).data.reshape(64)
         #print(action_probabilities)
         action_probabilities -= np.min(action_probabilities) # Add bias to make all components non-negative
         idx = np.random.choice(64, p=action_probabilities/np.sum(action_probabilities))

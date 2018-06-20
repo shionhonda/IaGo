@@ -135,11 +135,12 @@ class Game:
         # AI's turn
         else:
             # Predict position to place stone
-            X = np.stack([self.state==1, self.state==2], axis=2)
-            state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
+            X = np.stack([self.state==1, self.state==2], axis=0).astype(np.float32)
+            state_var = chainer.Variable(X.reshape(2,1,8,8).transpose(1,0,2,3))
             action_probabilities = self.model1.predictor(state_var).data.reshape(64)
             action_probabilities -= np.min(action_probabilities) # Add bias to make all components non-negative
-            idx = np.random.choice(64, p=action_probabilities/np.sum(action_probabilities))
+            distrib = action_probabilities/np.sum(action_probabilities)
+            idx = np.random.choice(64, p=distrib)
             position = [idx//8+1, idx%8+1]
             if not position in positions:
                 # Choose again if prediction is illegal

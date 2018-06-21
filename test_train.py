@@ -15,7 +15,7 @@ import rl_env
 def main():
 	# Set the number of episodes
     parser = argparse.ArgumentParser(description='IaGo:')
-    parser.add_argument('--set', '-s', type=int, default=100, help='Number of game sets played to train')
+    parser.add_argument('--set', '-s', type=int, default=500, help='Number of game sets played to train')
     args = parser.parse_args()
     N = 16
 
@@ -36,7 +36,8 @@ def main():
 
     for set in tqdm(range(args.set)):
         result = 0
-        env = rl_env.GameEnv(model1, model2)
+        #b = np.array([]) # Baseline
+        env = rl_env.GameEnv(agent.model, model2)
         for i in range(2*N):
             obs = env.reset()
             reward = 0
@@ -44,8 +45,9 @@ def main():
             while not done:
                 action = agent.act_and_train(obs, reward)
                 obs, reward, done, _ = env.step(action)
-            print(agent.reward_sequences)
             judge = env()
+            #b = np.append(b, judge)
+            agent.reward_sequences[-1] = [judge]*len(agent.log_prob_sequences[-1])
             result += judge
             # Update model if i reaches batchsize 2*N
             agent.stop_episode_and_train(obs, judge, done=True)

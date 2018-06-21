@@ -23,9 +23,9 @@ def main():
 
 	test_x = np.load('data/states_test.npy')
 	test_y = np.load('data/actions_test.npy')
-	test_x = np.stack([test_x==1, test_x==2], axis=3)
-	test_x = chainer.Variable(cuda.to_gpu(test_x.reshape(-1, 2, 8, 8).astype(np.float32)))
-	test_y = chainer.Variable(cuda.to_gpu(test_y.reshape(-1).astype(np.int32)))
+	test_x = np.stack([test_x==1, test_x==2], axis=0).astype(np.float32)
+	test_x = chainer.Variable(cuda.to_gpu(test_x.transpose(1,0,2,3)))
+	test_y = chainer.Variable(cuda.to_gpu(test_y.astype(np.int32)))
 	# Load train dataset
 	train_x = np.load('data/states.npy')
 	train_y = np.load('data/actions.npy')

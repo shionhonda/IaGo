@@ -1,4 +1,5 @@
 import numpy as np
+import random
 import chainer
 import chainer.links as L
 from chainer import cuda, Variable
@@ -44,7 +45,7 @@ class GameEnv:
             position = [action//8+1, action%8+1]
             if not position in positions:
                 # Choose randomly if prediction is illegal (very rare)
-                position = np.random.choice(positions)
+                position = random.choice(positions)
             self.place_stone(position, 1)
             self.stone_num += 1
             self.pass_flg = False
@@ -67,9 +68,9 @@ class GameEnv:
 
         if self.stone_num>=64:
             done = True
-        X = self.states
-        X = np.stack([X==1, X==2], axis=3)
-        obs = chainer.Variable(X.reshape(-1, 2, 8, 8).astype(np.float32))
+        X = self.state
+        X = np.stack([self.state==1, self.state==2], axis=0).astype(np.float32)
+        obs = chainer.Variable(X.reshape(2,1,8,8).transpose(1,0,2,3))
 
         return obs, 0, done, None
 
@@ -156,8 +157,8 @@ class GameEnv:
             self.state = self.state*(tmp-self.state)*(tmp-self.state)/2
 
         # Predict position to place stone
-        X = np.stack([self.state==1, self.state==2], axis=2)
-        state_var = chainer.Variable(X.reshape(1, 2, 8, 8).astype(np.float32))
+        X = np.stack([self.state==1, self.state==2], axis=0).astype(np.float32)
+        state_var = chainer.Variable(X.reshape(2,1,8,8).transpose(1,0,2,3))
         if color==1:
             action_probabilities = self.model1.predictor(state_var).data.reshape(64)
         else:

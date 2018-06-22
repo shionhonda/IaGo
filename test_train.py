@@ -25,19 +25,17 @@ def main():
     optimizer = optimizers.Adam()
     optimizer.setup(model1)
     optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))
-    #chainer.backends.cuda.get_device_from_id(0).use()
-    #model1.to_gpu()
     model2 = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
     serializers.load_npz("./models/rl/model0.npz", model2)
-    #model2.to_gpu()
     # REINFORCE algorithm
     agent = chainerrl.agents.REINFORCE(model1, optimizer, batchsize=2*N,
     backward_separately=False)
 
+    env = rl_env.GameEnv(agent.model, model2)
     for set in tqdm(range(args.set)):
         result = 0
-        #b = np.array([]) # Baseline
-        env = rl_env.GameEnv(agent.model, model2)
+        b = np.array([]) # Baseline
+
         for i in range(2*N):
             obs = env.reset()
             reward = 0
@@ -46,8 +44,8 @@ def main():
                 action = agent.act_and_train(obs, reward)
                 obs, reward, done, _ = env.step(action)
             judge = env()
-            #b = np.append(b, judge)
-            agent.reward_sequences[-1] = [judge]*len(agent.log_prob_sequences[-1])
+            b = np.append(b, judge)
+            agent.reward_sequences[-1] = [judge-np.mean(b)]*len(agent.log_prob_sequences[-1])
             result += judge
             # Update model if i reaches batchsize 2*N
             agent.stop_episode_and_train(obs, judge, done=True)

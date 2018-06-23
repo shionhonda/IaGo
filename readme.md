@@ -25,7 +25,7 @@ The first number corresponds to the vertical position and the second to the hori
 `$ python load.py`  
 You need at least 32MB RAM to complete this step.  
 4. Execute train.py  
-`$ python train.py --epoch=180`  
+`$ python train.py --epoch=30`  
 You need GPU to complete this step. It will take about 2 days.
 
 # Acknowledgements  

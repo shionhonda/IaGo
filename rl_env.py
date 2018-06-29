@@ -5,6 +5,8 @@ import chainer.links as L
 from chainer import cuda, Variable
 from chainer.cuda import cupy as cp
 import SLPolicy
+import sys
+sys.setrecursionlimit(10000)
 
 class GameEnv:
 
@@ -33,7 +35,6 @@ class GameEnv:
         self.stone_num = 4
         self.pass_flg = False
 
-        X = self.state
         X = np.stack([self.state==1, self.state==2], axis=0).astype(np.float32)
         obs = chainer.Variable(X.reshape(2,1,8,8).transpose(1,0,2,3))
         return obs
@@ -68,7 +69,6 @@ class GameEnv:
 
         if self.stone_num>=64:
             done = True
-        X = self.state
         X = np.stack([self.state==1, self.state==2], axis=0).astype(np.float32)
         obs = chainer.Variable(X.reshape(2,1,8,8).transpose(1,0,2,3))
 

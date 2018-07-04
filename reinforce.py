@@ -19,29 +19,29 @@ sys.setrecursionlimit(10000)
 def main():
 	# Set the number of sets
     parser = argparse.ArgumentParser(description='IaGo:')
-    parser.add_argument('--set', '-s', type=int, default=1000, help='Number of game sets played to train')
+    parser.add_argument('--set', '-s', type=int, default=400, help='Number of game sets played to train')
     args = parser.parse_args()
     N = 32
 
     # Model definition
     model1 = L.Classifier(SLPolicy.SLPolicyNet())
-    serializers.load_npz("./models/rl/model6.npz", model1)
+    serializers.load_npz("./models/rl/model20.npz", model1)
     optimizer = optimizers.Adam()
     optimizer.setup(model1)
     optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))
+    serializers.load_npz("./backup/rl_optimizer.npz", optimizer)
     # REINFORCE algorithm
     agent = chainerrl.agents.MyREINFORCE(model1, optimizer, batchsize=2*N,
     backward_separately=True)
 
-    for set in tqdm(range(120, args.set)):
+    for set in tqdm(range(0, args.set)):
         # Randomly choose competitor model from reinforced models
         model2 = L.Classifier(SLPolicy.SLPolicyNet())
-        model2_path = np.random.choice(glob.glob("./models/rl/*.npz"))
+        model2_path = np.random.choice(glob.glob("./models/rl/model0.npz"))
         print(model2_path)
         serializers.load_npz(model2_path, model2)
         env = rl_env.GameEnv(agent.model, model2)
         result = 0
-        b = np.array([]) # Baseline
         for i in  tqdm(range(2*N)):
             obs = env.reset()
             if i%2==1:
@@ -57,8 +57,7 @@ def main():
                 action = agent.act_and_train(obs, reward)
                 obs, reward, done, _ = env.step(action)
             judge = env()
-            b = np.append(b, judge)
-            agent.reward_sequences[-1] = [judge-np.mean(b)]*len(agent.log_prob_sequences[-1])
+            agent.reward_sequences[-1] = [judge]*len(agent.log_prob_sequences[-1])
             if judge==1:
                 result += 1
             # Update model if i reaches batchsize 2*N
@@ -67,8 +66,14 @@ def main():
         with open("./log_rl.txt", "a") as f:
             f.write(str(result/(2*N))+", \n")
 
+        model = copy.deepcopy(agent.model)
+            #model.to_cpu()
+        serializers.save_npz("./backup/model"+str(set)+".npz", model)
+        serializers.save_npz("./backup/rl_optimizer.npz", agent.optimizer)
+
+
         if (set+1)%20==0:
-            model = copy.deepcopy(agent.model)
+            #model = copy.deepcopy(agent.model)
             #model.to_cpu()
             serializers.save_npz("./models/rl/model"+str((set+1)//20)+".npz", model)
             serializers.save_npz("./models/rl_optimizer.npz", agent.optimizer)

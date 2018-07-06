@@ -25,11 +25,11 @@ def main():
 
     # Model definition
     model1 = L.Classifier(SLPolicy.SLPolicyNet())
-    serializers.load_npz("./models/rl/model20.npz", model1)
+    serializers.load_npz("./models/rl/model0.npz", model1)
     optimizer = optimizers.Adam()
     optimizer.setup(model1)
     optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))
-    serializers.load_npz("./backup/rl_optimizer.npz", optimizer)
+    #serializers.load_npz("./backup/rl_optimizer.npz", optimizer)
     # REINFORCE algorithm
     agent = chainerrl.agents.MyREINFORCE(model1, optimizer, batchsize=2*N,
     backward_separately=True)
@@ -37,7 +37,7 @@ def main():
     for set in tqdm(range(0, args.set)):
         # Randomly choose competitor model from reinforced models
         model2 = L.Classifier(SLPolicy.SLPolicyNet())
-        model2_path = np.random.choice(glob.glob("./models/rl/model0.npz"))
+        model2_path = np.random.choice(glob.glob("./models/rl/*.npz"))
         print(model2_path)
         serializers.load_npz(model2_path, model2)
         env = rl_env.GameEnv(agent.model, model2)

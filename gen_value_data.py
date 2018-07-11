@@ -13,7 +13,7 @@ def main():
         rand = np.random.randint(4,64)
         self_play = value_self_play.SelfPlay(rand)
         state, result = self_play()
-        with open("./value_data2.txt", "a") as f:
+        with open("./value_data.txt", "a") as f:
             f.write("\n"+str(state) + ", \r")
             f.write("\n")
             f.write("\n"+str(result) + ", \r")

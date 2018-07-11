@@ -3,4 +3,5 @@ data/
 __pycache__/
 *.ipynb
 gamelog/
+value_data/
 *.txt

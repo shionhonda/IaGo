@@ -1,6 +1,7 @@
 import numpy as np
 import glob
 import random
+import copy
 import chainer
 import chainer.links as L
 from chainer import Variable, serializers
@@ -35,7 +36,7 @@ class SelfPlay:
             cl = order(cl)
 
         color = cl
-        state = self.state
+        state = copy.deepcopy(self.state)
         if color==1:
             # AI1's turn
             tmp = 3*np.ones([8,8], dtype=np.float32)

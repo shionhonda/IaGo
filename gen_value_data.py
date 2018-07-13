@@ -6,7 +6,7 @@ import value_self_play
 def main():
     # Set the number of sets
      parser = argparse.ArgumentParser(description='IaGo:')
-     parser.add_argument('--size', '-s', type=int, default=1000000, help='Number of game sets played to train')
+     parser.add_argument('--size', '-s', type=int, default=1000000, help='Number of games to play')
      args = parser.parse_args()
 
      for i in tqdm(range(args.size)):

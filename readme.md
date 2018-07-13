@@ -3,6 +3,8 @@ IaGo is an Othello AI using SL(supervised learning) policy network inspired by A
 It doesn't predict plays ahead, but it is still powerful.  
 Description in Japanese:  
 [AlphaGoを模したオセロAIを作る(1): SLポリシーネットワーク - Qiita](https://qiita.com/shionhonda/items/7a3eb79f55299e743630)
+[AlphaGoを模したオセロAIを作る(2): RLポリシーネットワーク - Qiita](https://qiita.com/shionhonda/items/56e37872419a3c79b3aa)
+[AlphaGoを模したオセロAIを作る(3): バリューネットワーク - Qiita](https://qiita.com/shionhonda/items/7dce679b385f738a0dcb)
 
 # How to play?  
 1. Install chainer  

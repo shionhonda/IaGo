@@ -12,8 +12,8 @@ import value
 def main():
 	# Set the number of epochs
 	parser = argparse.ArgumentParser(description='IaGo:')
-	parser.add_argument('--epoch', '-e', type=int, default=100, help='Number of sweeps over the dataset to train')
-	parser.add_argument('--gpuid', '-g', type=int, default=0, help='Number of sweeps over the dataset to train')
+	parser.add_argument('--epoch', '-e', type=int, default=20, help='Number of sweeps over the dataset to train')
+	parser.add_argument('--gpuid', '-g', type=int, default=0, help='GPU ID to be used')
 	args = parser.parse_args()
 
 	# Model definition
@@ -38,6 +38,9 @@ def main():
 	# Learing loop
 	for epoch in tqdm(range(args.epoch)):
 		model.to_gpu(args.gpuid)
+		# Should be unnecessary...
+		#chainer.config.train = True
+		#chainer.config.enable_backprop = True
 		# Shuffle train dataset
 		rands = np.random.choice(train_size, train_size, replace=False)
 		train_x = train_x[rands,:,:]
@@ -56,13 +59,14 @@ def main():
 			train_loss.backward()
 			optimizer.update()
 		# Calculate loss
-		with chainer.using_config('train', False), chainer.using_config('enable_backprop', False):
-			test_pred = model(test_x)
-			test_loss = mean_squared_error(test_pred, test_y)
-			print('\nepoch :', epoch, '  loss :', test_loss.data)
-			# Log
-			with open("./log_value.txt", "a") as f:
-				f.write(str(test_loss.data)+", \n")
+		with chainer.using_config('train', False):
+			with chainer.using_config('enable_backprop', False):
+				test_pred = model(test_x)
+		test_loss = mean_squared_error(test_pred, test_y)
+		print('\nepoch :', epoch, '  loss :', test_loss)
+		# Log
+		with open("./log_value.txt", "a") as f:
+			f.write(str(test_loss)[9:15]+", \n")
 		# Save models
 		model.to_cpu()
 		serializers.save_npz('./models/value_model.npz', model)

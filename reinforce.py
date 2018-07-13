@@ -13,13 +13,11 @@ from chainer.functions.loss.softmax_cross_entropy import softmax_cross_entropy
 import chainerrl
 import SLPolicy
 import rl_env
-import sys
-sys.setrecursionlimit(10000)
 
 def main():
 	# Set the number of sets
     parser = argparse.ArgumentParser(description='IaGo:')
-    parser.add_argument('--set', '-s', type=int, default=400, help='Number of game sets played to train')
+    parser.add_argument('--set', '-s', type=int, default=1000, help='Number of game sets played to train')
     args = parser.parse_args()
     N = 32
 
@@ -29,7 +27,7 @@ def main():
     optimizer = optimizers.Adam()
     optimizer.setup(model1)
     optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))
-    #serializers.load_npz("./backup/rl_optimizer.npz", optimizer)
+
     # REINFORCE algorithm
     agent = chainerrl.agents.MyREINFORCE(model1, optimizer, batchsize=2*N,
     backward_separately=True)

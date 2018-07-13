@@ -130,7 +130,9 @@ class Game:
         if len(positions)>0:
             position = self.get_position(color, positions)
             if color==1:
-                self.states.append(self.state)
+                tmp = 3*np.ones([8,8], dtype=np.float32)
+                state = self.state*(tmp-self.state)*(tmp-self.state)/2
+                self.states.append(state)
                 self.actions.append((position[0]-1)*8 + (position[1]-1))
             self.place_stone(position, color)
             self.pass_flg = False

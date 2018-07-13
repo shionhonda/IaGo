@@ -22,7 +22,7 @@ def main():
     # Model definition
     model1 = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
     serializers.load_npz("./models/RL/model0.npz", model1)
-    optimizer = optimizers.Adam(alpha=0.001)
+    optimizer = optimizers.Adam(alpha=0.0005)
     optimizer.setup(model1)
     optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))
     #serializers.load_npz("./backup/rl_optimizer.npz", optimizer)
@@ -31,7 +31,7 @@ def main():
     for set in tqdm(range(0, args.set)):
         # Randomly choose competitor model from reinforced models
         model2 = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
-        model2_path = np.random.choice(glob.glob("./models/RL/*.npz"))
+        model2_path = np.random.choice(glob.glob("./models/RL/model0.npz"))
         print(model2_path)
         serializers.load_npz(model2_path, model2)
 
@@ -69,15 +69,15 @@ def main():
 
         model = copy.deepcopy(model1)
             #model.to_cpu()
-        serializers.save_npz("./backup/model"+str(set)+".npz", model)
-        serializers.save_npz("./backup/optimizer"+str(set)+".npz", optimizer)
+        #serializers.save_npz("./backup/model"+str(set)+".npz", model)
+        #serializers.save_npz("./backup/optimizer"+str(set)+".npz", optimizer)
 
 
-        if (set+1)%500==0:
+        #if (set+1)%500==0:
             #model = copy.deepcopy(model1)
             #model.to_cpu()
-            serializers.save_npz("./models/RL/model"+str((set+1)//500)+".npz", model)
-            serializers.save_npz("./models/rl_optimizer.npz", optimizer)
+            #serializers.save_npz("./models/RL/model"+str((set+1)//500)+".npz", model)
+            #serializers.save_npz("./models/rl_optimizer.npz", optimizer)
 
 if __name__ == '__main__':
     main()

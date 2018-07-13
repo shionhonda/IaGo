@@ -26,7 +26,8 @@ class ValueNet(chainer.Chain):
             self.block7 = Block(128, ksize)
             self.block8 = Block(128, ksize)
             self.block9 = Block(1, ksize)
-            self.fc10 = L.Linear(None, 1, nobias=True)
+            self.fc10 = L.Linear(None, 128, nobias=True)
+            self.fc11 = L.Linear(None, 1, nobias=True)
 
     def __call__(self, x):
         h = self.block1(x)
@@ -38,6 +39,8 @@ class ValueNet(chainer.Chain):
         h = self.block7(h)
         h = self.block8(h)
         h = self.block9(h)
-        h = self.fc10(h).reshape(-1)
+        h = self.fc10(h)
+        h = F.dropout(h, 0.4)
+        h = self.fc11(h).reshape(-1)
 
         return h

@@ -1,6 +1,5 @@
 # What is IaGo?
-IaGo is an Othello AI using SL(supervised learning) policy network inspired by AlphaGo.  
-It doesn't predict plays ahead, but it is still powerful.  
+IaGo is an Othello AI using SL(supervised learning) policy network, RL(reinforcement learning) policy network, and value network inspired by AlphaGo.  
 Description in Japanese:  
 [AlphaGoを模したオセロAIを作る(1): SLポリシーネットワーク - Qiita](https://qiita.com/shionhonda/items/7a3eb79f55299e743630)  
 [AlphaGoを模したオセロAIを作る(2): RLポリシーネットワーク - Qiita](https://qiita.com/shionhonda/items/56e37872419a3c79b3aa)  

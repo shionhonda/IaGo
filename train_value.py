@@ -3,7 +3,6 @@ import numpy as np
 from tqdm import tqdm
 
 import chainer
-import chainer.links as L
 from chainer import serializers, cuda, optimizers, Variable
 from chainer.functions import mean_squared_error
 

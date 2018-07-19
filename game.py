@@ -120,14 +120,18 @@ class Game:
             else:
                 action = self.get_action(color, actions)
             self.state = GameFunctions.place_stone(self.state, action, color)
+            position = [action//8+1, action%8+1]
+            print(position)
             self.show()
             self.pass_flg = False
             self.gamelog += "[" + str(self.play_num) + "]" + players[color-1]\
-             + ": " + str([action//8+1, action%8+1]) + "\n"
+             + ": " + str(position) + "\n"
             self.stone_num += 1
+            print(self.stone_num, "stones")
         else:
             if self.pass_flg:
                 self.stone_num = 64 # Game over when two players pass consecutively
+                print("2 consecutive passes")
             print(players[color-1] + " pass.")
             self.pass_flg = True
             self.gamelog += "[" + str(self.play_num) + "]" + players[color-1] + ": Pass\n"

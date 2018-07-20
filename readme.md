@@ -17,11 +17,11 @@ Description in Japanese:
 You can set following options:  
 `--auto=False` or `--a=False`  
 If this is set True, autoplay begins between SLPolicy and APV-MCTS, and if False (default), the game is played by you and APV-MCTS.  
-`--level=5`  
-This option is the maximum depth of tree search for APV-MCTS. The higher level means deeper search. Note that there is a tradeoff between level (or strength, search depth) and computational complexity (thinking time). The thinking time is exponential to the level. The default value is 5.  
+`--level=6`  
+This option is the maximum depth of tree search for APV-MCTS. The higher level means deeper search. Note that there is a trade-off between level (or strength, search depth) and computational complexity (thinking time). The thinking time is exponential to the level. The default value is 6.  
 4. When placing a stone, input two numbers seperated by comma. For example:  
 `4,3`  
-The first number corresponds to the vertical position and the second to the horizontal (zero origin).
+The first number corresponds to the vertical position and the second to the horizontal (one origin).
 
 # How to train?
 1. Download data from <http://meipuru-344.hatenablog.com/entry/2017/11/27/205448>
@@ -29,10 +29,10 @@ The first number corresponds to the vertical position and the second to the hori
 3. Augment data  
 `$ python load.py`  
 You need at least 32MB RAM to complete this step.  
-4. Execute train_policy.py to train SL policy network.
+4. Execute train_policy.py to train SL policy network.  
 `$ python train_policy.py --policy=sl --epoch=30 --gpu=0`  
 You need GPUs to complete this step. It will take about 2 days.
-5. Execute train_policy.py to train rollout policy.
+5. Execute train_policy.py to train rollout policy.  
 `$ python train_policy.py --policy=rollout --epoch=1 --gpu=0`  
 This is fast.  
 6. Execute train_rl.py to reinforce SL policy network with REINFORCE (a kind of policy gradients).  

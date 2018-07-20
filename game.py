@@ -31,7 +31,7 @@ class Game:
         self.play_num = 1
         self.pass_flg = False
         self.date = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        self.gamelog = "IaGo v2.0\n" + self.date + "\n"
+        self.gamelog = "IaGo level" + str(level) + "\n" + self.date + "\n"
         self.mcts = MCTS.MCTS(playout_depth=level, n_playout=2**level)
 
     # Convert ndarray to a board-like string
@@ -235,7 +235,7 @@ class GameFunctions:
 def main():
     parser = argparse.ArgumentParser(description='IaGo:')
     parser.add_argument('--auto', '-a', type=bool, default=False, help='Set True for auto play between MCTS and SLPolicy')
-    parser.add_argument('--level', '-l', type=int, default=5, help='Depth of MCTS playout. Large number makes it stronger but takes more time.')
+    parser.add_argument('--level', '-l', type=int, default=6, help='Depth of MCTS playout. Large number makes it stronger but takes more time.')
     args = parser.parse_args()
 
     print("\n"+"*"*34)

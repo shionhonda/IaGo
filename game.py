@@ -64,11 +64,11 @@ class Game:
     def safeinput(self):
         r = r"\d[,]\d"
         line = input()
-        if re.fullmatch(r, text):
+        if re.fullmatch(r, line):
             return line.split(',')
         else:
             print("Try again.")
-            return safeinput() # Recurse this function for mistyping
+            return self.safeinput() # Recurse this function for mistyping
 
     # Get position to place stone
     def get_action(self, color, actions):

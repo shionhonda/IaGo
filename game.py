@@ -3,6 +3,7 @@ import argparse
 import re
 from datetime import datetime
 import numpy as np
+import re
 from numba import jit
 from chainer import Variable, serializers
 import network

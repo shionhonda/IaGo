@@ -1,10 +1,11 @@
 import os
 import argparse
+import re
 from datetime import datetime
 import numpy as np
 from numba import jit
 from chainer import Variable, serializers
-import policy
+import network
 import MCTS
 #from game_func import GameFunctions as GameFunctions
 
@@ -14,7 +15,7 @@ class Game:
         # Initialize board state
         if auto:
             self.p1 = "IaGo(SLPolicy)"
-            self.model = policy.SLPolicy()
+            self.model = network.SLPolicy()
             serializers.load_npz('./models/sl_model.npz', self.model)
         else:
             self.p1 = "You"
@@ -61,15 +62,13 @@ class Game:
 
     # Input function tolerant for mistyping
     def safeinput(self):
+        r = r"\d[,]\d"
         line = input()
-        if line.isspace():
-            return safeinput() # Recurse this function for mistyping
-        line = line.split(',')
-        if len(line) != 2:
-            print("Try again.")
-            return safeinput() # Recurse this function for mistyping
+        if re.fullmatch(r, line):
+            return line.split(',')
         else:
-            return line
+            print("Try again.")
+            return self.safeinput() # Recurse this function for mistyping
 
     # Get position to place stone
     def get_action(self, color, actions):

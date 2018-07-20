@@ -4,7 +4,7 @@ import copy
 from numba import jit
 import chainer
 from chainer import serializers
-import policy
+import network
 
 class Simulate:
 
@@ -15,7 +15,7 @@ class Simulate:
         self.stone_num = 64-np.sum(self.state==0)
         self.pass_flg = False
         # Initialize model
-        self.model = policy.RolloutPolicy()
+        self.model = network.RolloutPolicy()
         serializers.load_npz('./models/rollout_model.npz', self.model)
         chainer.config.train = False
         chainer.config.enable_backprop = False

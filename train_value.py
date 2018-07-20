@@ -1,12 +1,10 @@
 import argparse
 import numpy as np
 from tqdm import tqdm
-
 import chainer
 from chainer import serializers, cuda, optimizers, Variable
 from chainer.functions import mean_squared_error
-
-import value
+import network
 
 def main():
 	# Set the number of epochs
@@ -16,7 +14,7 @@ def main():
 	args = parser.parse_args()
 
 	# Model definition
-	model = value.ValueNet()
+	model = network.Value()
 	optimizer = optimizers.Adam()
 	optimizer.setup(model)
 	optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))

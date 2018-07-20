@@ -4,7 +4,6 @@ import chainer
 import chainer.links as L
 from chainer import cuda, Variable
 from chainer.cuda import cupy as cp
-import SLPolicy
 import sys
 sys.setrecursionlimit(10000)
 

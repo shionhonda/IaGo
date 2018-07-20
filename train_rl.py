@@ -9,7 +9,7 @@ import chainer.functions as F
 import chainer.links as L
 from chainer import serializers, optimizers, Variable
 from chainer.functions.loss.softmax_cross_entropy import softmax_cross_entropy
-import SLPolicy
+import network
 import rl_self_play
 
 def main():
@@ -20,7 +20,7 @@ def main():
     N = 32
 
     # Model definition
-    model1 = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
+    model1 = network.SLPolicy()
     serializers.load_npz("./models/RL/model0.npz", model1)
     optimizer = optimizers.Adam(alpha=0.0005)
     optimizer.setup(model1)
@@ -30,7 +30,7 @@ def main():
 
     for set in tqdm(range(0, args.set)):
         # Randomly choose competitor model from reinforced models
-        model2 = L.Classifier(SLPolicy.SLPolicyNet(), lossfun=softmax_cross_entropy)
+        model2 = network.SLPolicy()
         model2_path = np.random.choice(glob.glob("./models/RL/model0.npz"))
         print(model2_path)
         serializers.load_npz(model2_path, model2)
@@ -57,7 +57,7 @@ def main():
         x = chainer.Variable(x.transpose(1,0,2,3))
         y = Variable(np.array(action_seq).astype(np.int32))
         r = Variable(np.array(reward_seq).astype(np.float32))
-        pred = model1.predictor(x)
+        pred = model1(x)
         c  = softmax_cross_entropy(pred, y, reduce="no")
         model1.cleargrads()
         loss = F.mean(c*r)

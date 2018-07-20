@@ -2,8 +2,7 @@ import numpy as np
 import copy
 import chainer
 from chainer import serializers, cuda, optimizers, Variable
-import policy
-import value
+import network
 import mcts_self_play
 from game import GameFunctions as gf
 
@@ -74,9 +73,9 @@ class MCTS(object):
 
     def __init__(self, lmbda=0.5, c_puct=5, playout_depth=5, n_playout=32):
         self.root = Node(None, 1.0)
-        self.policy_net = policy.SLPolicy()
+        self.policy_net = network.SLPolicy()
         serializers.load_npz('./models/sl_model.npz', self.policy_net)
-        self.value_net = value.ValueNet()
+        self.value_net = network.Value()
         serializers.load_npz('./models/value_model.npz', self.value_net)
         chainer.config.train = False
         chainer.config.enable_backprop = False

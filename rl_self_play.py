@@ -3,7 +3,6 @@ import random
 import chainer
 import chainer.links as L
 from chainer import Variable
-import SLPolicy
 
 class Game:
 
@@ -112,9 +111,9 @@ class Game:
         X = np.stack([state==1, state==2], axis=0).astype(np.float32)
         state_var = chainer.Variable(X.reshape(2,1,8,8).transpose(1,0,2,3))
         if color==1:
-            action_probabilities = self.model1.predictor(state_var).data.reshape(64)
+            action_probabilities = self.model1(state_var).data.reshape(64)
         else:
-            action_probabilities = self.model2.predictor(state_var).data.reshape(64)
+            action_probabilities = self.model2(state_var).data.reshape(64)
         #print(action_probabilities)
         idx = np.random.choice(64, p=softmax(action_probabilities))
         position = [idx//8+1, idx%8+1]

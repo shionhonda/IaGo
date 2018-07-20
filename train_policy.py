@@ -5,7 +5,7 @@ import chainer
 import chainer.functions as F
 import chainer.links as L
 from chainer import serializers, cuda, optimizers, Variable
-import policy
+import network
 
 def transform(x, y):
 	x = np.stack([x==1, x==2], axis=0).astype(np.float32)
@@ -23,11 +23,11 @@ def main():
 
 	# Model definition
 	if args.policy=="rollout":
-		model = policy.RolloutPolicy()
+		model = network.RolloutPolicy()
 	else:
 		if args.policy!="sl":
 			print('Argument "--policy" is invalid. SLPolicy has been set by default.')
-		model = policy.SLPolicy()
+		model = network.SLPolicy()
 	optimizer = optimizers.Adam()
 	optimizer.setup(model)
 	optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))

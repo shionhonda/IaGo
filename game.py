@@ -2,6 +2,7 @@ import os
 import argparse
 from datetime import datetime
 import numpy as np
+import re
 from numba import jit
 from chainer import Variable, serializers
 import policy
@@ -61,15 +62,13 @@ class Game:
 
     # Input function tolerant for mistyping
     def safeinput(self):
+        r = r"\d[,]\d"
         line = input()
-        if line.isspace():
-            return safeinput() # Recurse this function for mistyping
-        line = line.split(',')
-        if len(line) != 2:
+        if re.fullmatch(r, text):
+            return line.split(',')
+        else:
             print("Try again.")
             return safeinput() # Recurse this function for mistyping
-        else:
-            return line
 
     # Get position to place stone
     def get_action(self, color, actions):

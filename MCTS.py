@@ -72,7 +72,7 @@ class Node(object):
 
 class MCTS(object):
 
-    def __init__(self, lmbda=0.5, c_puct=5, playout_depth=5, n_playout=100):
+    def __init__(self, lmbda=0.5, c_puct=5, playout_depth=5, n_playout=243):
         self.root = Node(None, 1.0)
         self.policy_net = policy.SLPolicy()
         serializers.load_npz('./models/sl_model.npz', self.policy_net)
@@ -99,17 +99,19 @@ class MCTS(object):
 
     def playout(self, state, leaf_depth, color):
         node = self.root
+        c = color
         for i in range(leaf_depth):
             if node.is_leaf():
                 # a list of tuples of actions and their prior probability
-                actions = gf.legal_actions(state, color)
+                actions = gf.legal_actions(state, c)
                 if len(actions)<1:
                     break
-                action_probs = self.policy_func(state, color, actions)
+                action_probs = self.policy_func(state, c, actions)
                 node.expand(action_probs)
             # Greedily select next move.
             action, node = node.select()
-            state = gf.place_stone(state, action, color)
+            state = gf.place_stone(state, action, c)
+            c = 3-c
         v = self.value_func(state, color) if self.lmbda < 1 else 0
         z = self.evaluate_rollout(state, color) if self.lmbda > 0 else 0
         leaf_value = (1-self.lmbda)*v + self.lmbda*z

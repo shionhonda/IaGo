@@ -43,7 +43,7 @@ class SLPolicy(chainer.Chain):
         h = self.conv9(h)
         h = F.reshape(h, (-1,64))
         h = self.bias10(h)
-        #h = F.softmax(h, axis=1)
+        h = F.softmax(h, axis=1)
         return h
 
 class RolloutPolicy(chainer.Chain):
@@ -51,7 +51,6 @@ class RolloutPolicy(chainer.Chain):
     Rollout policy: Works faster but worse than SL policy
     '''
     def __init__(self):
-        ksize = 3
         super(RolloutPolicy, self).__init__()
         with self.init_scope():
             self.conv1 = L.Convolution2D(None, 1, 3, nobias=True, pad=1)

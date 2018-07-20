@@ -10,7 +10,7 @@ import MCTS
 
 class Game:
 
-    def __init__(self, auto):
+    def __init__(self, auto, level):
         # Initialize board state
         if auto:
             self.p1 = "IaGo(SLPolicy)"
@@ -32,7 +32,7 @@ class Game:
         self.pass_flg = False
         self.date = datetime.now().strftime("%Y-%m-%d-%H-%M")
         self.gamelog = "IaGo v2.0\n" + self.date + "\n"
-        self.mcts = MCTS.MCTS()
+        self.mcts = MCTS.MCTS(playout_depth=level, n_playout=3**level)
 
     # Convert ndarray to a board-like string
     def show(self):
@@ -54,7 +54,7 @@ class Game:
         if you>ai:
             print(self.p1, "WIN!")
         elif you<ai:
-            print(self.p1, "LOSE")
+            print(self.p2, "WIN")
         else:
             print("DRAW")
         return "X(You):"+ str(you) + ", O(AI):" + str(ai) + ", Empty:" + str(np.sum(self.state==0))
@@ -81,6 +81,7 @@ class Game:
                 print("This position is invalid. Choose another position")
                 return self.get_action(color, actions) # Recurse
             #action = (position[0]-1)*8 + (position[1]-1)
+            self.mcts.update_with_move(action)
         # Player2's turn
         else:
             # Choose position by MCTS
@@ -97,11 +98,11 @@ class Game:
             prob = self.model(state_var).data.reshape(64)
             valid = np.zeros(64)
             valid[actions] = 1
-            prob = prob*valid
-            action = np.random.choice(64, p=prob/np.sum(prob))
+            action = np.random.choice(64, p=prob*valid/np.sum(prob*valid))
             if not action in actions:
                 # Choose again if prediction is illegal
                 return self.get_action_auto(color, actions)
+            self.mcts.update_with_move(action)
         # Player2's turn
         else:
             # Choose position by MCTS
@@ -119,19 +120,17 @@ class Game:
                 action = self.get_action_auto(color, actions)
             else:
                 action = self.get_action(color, actions)
-            self.state = GameFunctions.place_stone(self.state, action, color)
             position = [action//8+1, action%8+1]
             print(position)
+            self.state = GameFunctions.place_stone(self.state, action, color)
             self.show()
             self.pass_flg = False
             self.gamelog += "[" + str(self.play_num) + "]" + players[color-1]\
              + ": " + str(position) + "\n"
             self.stone_num += 1
-            print(self.stone_num, "stones")
         else:
             if self.pass_flg:
                 self.stone_num = 64 # Game over when two players pass consecutively
-                print("2 consecutive passes")
             print(players[color-1] + " pass.")
             self.pass_flg = True
             self.gamelog += "[" + str(self.play_num) + "]" + players[color-1] + ": Pass\n"
@@ -235,13 +234,14 @@ class GameFunctions:
 def main():
     parser = argparse.ArgumentParser(description='IaGo:')
     parser.add_argument('--auto', '-a', type=bool, default=False, help='Set True for auto play between MCTS and SLPolicy')
+    parser.add_argument('--level', '-l', type=int, default=5, help='Depth of MCTS playout. Large number makes it stronger but takes more time.')
     args = parser.parse_args()
 
     print("\n"+"*"*34)
     print("*"*11+"Game Start!!"+"*"*11)
     print("*"*34+"\n")
 
-    game = Game(args.auto)
+    game = Game(args.auto, args.level)
     game.show()
 
     while(game.stone_num<64):

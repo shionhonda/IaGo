@@ -72,7 +72,7 @@ class Node(object):
 
 class MCTS(object):
 
-    def __init__(self, lmbda=0.5, c_puct=5, playout_depth=5, n_playout=243):
+    def __init__(self, lmbda=0.5, c_puct=5, playout_depth=5, n_playout=32):
         self.root = Node(None, 1.0)
         self.policy_net = policy.SLPolicy()
         serializers.load_npz('./models/sl_model.npz', self.policy_net)

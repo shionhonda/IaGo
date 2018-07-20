@@ -32,7 +32,7 @@ class Game:
         self.pass_flg = False
         self.date = datetime.now().strftime("%Y-%m-%d-%H-%M")
         self.gamelog = "IaGo v2.0\n" + self.date + "\n"
-        self.mcts = MCTS.MCTS(playout_depth=level, n_playout=3**level)
+        self.mcts = MCTS.MCTS(playout_depth=level, n_playout=2**level)
 
     # Convert ndarray to a board-like string
     def show(self):
@@ -43,21 +43,21 @@ class Game:
             s= s.replace("0", "   ").replace("1", " X ").replace("2", " O ")
             print(str(i+1)+s)
         print(" " + "-"*33)
-        print("X(You):"+ str(np.sum(self.state==1)) + ", O(AI):" + str(np.sum(self.state==2))\
+        print(self.p1 + "(X):"+ str(np.sum(self.state==1)) + ", " + self.p2 + "(O):" + str(np.sum(self.state==2))\
         + ", Empty:" + str(np.sum(self.state==0)))
         print("\n")
 
     # Judge game winner
     def judge(self):
-        you = np.sum(self.state==1)
-        ai = np.sum(self.state==2)
-        if you>ai:
+        p1 = np.sum(self.state==1)
+        p2 = np.sum(self.state==2)
+        if p1>p2:
             print(self.p1, "WIN!")
-        elif you<ai:
+        elif p1<p2:
             print(self.p2, "WIN")
         else:
             print("DRAW")
-        return "X(You):"+ str(you) + ", O(AI):" + str(ai) + ", Empty:" + str(np.sum(self.state==0))
+        return self.p1 + ":"+ str(p1) + ", " + self.p2 + ":" + str(p2) + ", Empty:" + str(np.sum(self.state==0))
 
     # Input function tolerant for mistyping
     def safeinput(self):
@@ -75,15 +75,16 @@ class Game:
     def get_action(self, color, actions):
         # Player1's turn
         if color==1:
+            print("Your turn. Choose a position!")
             position = [int(e) for e in self.safeinput()]
             action = (position[0]-1)*8 + (position[1]-1)
             if not action in actions:
                 print("This position is invalid. Choose another position")
                 return self.get_action(color, actions) # Recurse
-            #action = (position[0]-1)*8 + (position[1]-1)
             self.mcts.update_with_move(action)
         # Player2's turn
         else:
+            print("Thinking... Wait a second.")
             # Choose position by MCTS
             state_var = GameFunctions.make_state_var(self.state, 2)
             action = self.mcts.get_move(self.state, 2)

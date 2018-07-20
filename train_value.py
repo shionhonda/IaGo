@@ -12,7 +12,7 @@ def main():
 	# Set the number of epochs
 	parser = argparse.ArgumentParser(description='IaGo:')
 	parser.add_argument('--epoch', '-e', type=int, default=20, help='Number of sweeps over the dataset to train')
-	parser.add_argument('--gpuid', '-g', type=int, default=0, help='GPU ID to be used')
+	parser.add_argument('--gpu', '-g', type=int, default=0, help='GPU ID to be used')
 	args = parser.parse_args()
 
 	# Model definition
@@ -20,13 +20,13 @@ def main():
 	optimizer = optimizers.Adam()
 	optimizer.setup(model)
 	optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))
-	cuda.get_device(args.gpuid).use()
+	cuda.get_device(args.gpu).use()
 
 	test_x = np.load('./value_data/npy/states_test.npy')
 	test_y = np.load('./value_data/npy/results_test.npy')
 	test_x = np.stack([test_x==1, test_x==2], axis=0).astype(np.float32)
-	test_x = chainer.Variable(cuda.to_gpu(test_x.transpose(1,0,2,3)))
-	test_y = chainer.Variable(cuda.to_gpu(test_y.astype(np.float32)))
+	test_x = Variable(cuda.to_gpu(test_x.transpose(1,0,2,3)))
+	test_y = Variable(cuda.to_gpu(test_y.astype(np.float32)))
 
 	# Load train dataset
 	train_x = np.load('./value_data/npy/states.npy')
@@ -36,7 +36,7 @@ def main():
 
 	# Learing loop
 	for epoch in tqdm(range(args.epoch)):
-		model.to_gpu(args.gpuid)
+		model.to_gpu(args.gpu)
 		# Should be unnecessary...
 		#chainer.config.train = True
 		#chainer.config.enable_backprop = True
@@ -49,9 +49,9 @@ def main():
 		for idx in tqdm(range(0, train_size, minibatch_size)):
 			x = train_x[idx:min(idx+minibatch_size, train_size), :, :]
 			x = np.stack([x==1, x==2], axis=0).astype(np.float32)
-			x = chainer.Variable(cuda.to_gpu(x.transpose(1,0,2,3)))
+			x = Variable(cuda.to_gpu(x.transpose(1,0,2,3)))
 			y = train_y[idx:min(idx+minibatch_size, train_size)]
-			y = chainer.Variable(cuda.to_gpu(y.astype(np.float32)))
+			y = Variable(cuda.to_gpu(y.astype(np.float32)))
 			train_pred = model(x)
 			train_loss = mean_squared_error(train_pred, y)
 			model.cleargrads()
@@ -70,10 +70,6 @@ def main():
 		model.to_cpu()
 		serializers.save_npz('./models/value_model.npz', model)
 		serializers.save_npz('./models/value_optimizer.npz', optimizer)
-		# Early stop
-		#if loss<0.94:
-		#	print("Early stop")
-		#	break
 
 if __name__ == '__main__':
     main()

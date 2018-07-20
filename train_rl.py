@@ -73,11 +73,11 @@ def main():
         #serializers.save_npz("./backup/optimizer"+str(set)+".npz", optimizer)
 
 
-        #if (set+1)%500==0:
-            #model = copy.deepcopy(model1)
+        if (set+1)%500==0:
+            model = copy.deepcopy(model1)
             #model.to_cpu()
-            #serializers.save_npz("./models/RL/model"+str((set+1)//500)+".npz", model)
-            #serializers.save_npz("./models/rl_optimizer.npz", optimizer)
+            serializers.save_npz("./models/RL/model"+str((set+1)//500)+".npz", model)
+            serializers.save_npz("./models/rl_optimizer.npz", optimizer)
 
 if __name__ == '__main__':
     main()

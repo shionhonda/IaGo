@@ -1,5 +1,7 @@
 # What is IaGo?
 IaGo is an Othello AI using SL(supervised learning) policy network, value network, and MCTS(Monte Carlo tree search) inspired by AlphaGo.  
+Short description in English:  
+[IaGo: an Othello AI inspired by AlphaGo](https://www.slideshare.net/ShionHonda/iago-an-othello-aiinspired-by-alphago)  
 Description in Japanese:  
 [AlphaGoを模したオセロAIを作る(1): SLポリシーネットワーク - Qiita](https://qiita.com/shionhonda/items/7a3eb79f55299e743630)  
 [AlphaGoを模したオセロAIを作る(2): RLポリシーネットワーク - Qiita](https://qiita.com/shionhonda/items/56e37872419a3c79b3aa)  

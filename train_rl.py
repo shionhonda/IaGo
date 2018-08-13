@@ -21,7 +21,7 @@ def main():
 
     # Model definition
     model1 = network.SLPolicy()
-    serializers.load_npz("./models/RL/model0.npz", model1)
+    serializers.load_npz("../models/RL/model0.npz", model1)
     optimizer = optimizers.Adam(alpha=0.0005)
     optimizer.setup(model1)
     optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))
@@ -31,7 +31,7 @@ def main():
     for set in tqdm(range(0, args.set)):
         # Randomly choose competitor model from reinforced models
         model2 = network.SLPolicy()
-        model2_path = np.random.choice(glob.glob("./models/RL/model0.npz"))
+        model2_path = np.random.choice(glob.glob("../models/RL/model0.npz"))
         print(model2_path)
         serializers.load_npz(model2_path, model2)
 
@@ -76,8 +76,8 @@ def main():
         if (set+1)%500==0:
             model = copy.deepcopy(model1)
             #model.to_cpu()
-            serializers.save_npz("./models/RL/model"+str((set+1)//500)+".npz", model)
-            serializers.save_npz("./models/rl_optimizer.npz", optimizer)
+            serializers.save_npz("../models/RL/model"+str((set+1)//500)+".npz", model)
+            serializers.save_npz("../models/rl_optimizer.npz", optimizer)
 
 if __name__ == '__main__':
     main()

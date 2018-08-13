@@ -1,5 +1,6 @@
 import numpy as np
 import copy
+import time
 import chainer
 from chainer import serializers, cuda, optimizers, Variable
 import network
@@ -14,8 +15,8 @@ class Node(object):
         self.n_visits = 0
         self.Q = 0
         # This value for u will be overwritten in the first call to update()
-        self.u = prob
-        self.P = prob
+        self.u = prob+0.1
+        self.P = prob+0.1
 
     def is_root(self):
         return self.parent is None
@@ -35,12 +36,17 @@ class Node(object):
             if action not in self.children:
                 self.children[action] = Node(self, prob)
 
-    def select(self):
+    def select(self, c_puct):
         """Select action among children that gives maximum action value, Q plus bonus u(P).
         Returns:
         A tuple of (action, next_node)
         """
+        for k in self.children:
+            self.children[k].u = self.children[k].U(c_puct)
         return max(self.children.items(), key=lambda act_node: act_node[1].get_value())
+
+    def U(self, c_puct):
+        return c_puct * self.P * np.sqrt(self.parent.n_visits) / (0.01 + self.n_visits)
 
     def update(self, leaf_value, c_puct):
         """Update node values from leaf evaluation.
@@ -57,21 +63,21 @@ class Node(object):
         self.Q += (leaf_value - self.Q) / self.n_visits
         # Update u, the prior weighted by an exploration hyperparameter c_puct
         # Note that u is not normalized to be a distribution.
-        if not self.is_root():
-            self.u = c_puct * self.P * np.sqrt(self.parent.n_visits) / (1 + self.n_visits)
+
 
     def update_recursive(self, leaf_value, c_puct):
-        # If it is not root, this node's parent should be updated first.
-        if self.parent is not None:
-            self.parent.update_recursive(leaf_value, c_puct)
         self.update(leaf_value, c_puct)
+        # If it is not root, this node's parent should be updated next.
+        if not self.is_root():
+            self.parent.update_recursive(leaf_value, c_puct)
+
 
     def get_value(self):
         return self.Q + self.u
 
 class MCTS(object):
 
-    def __init__(self, lmbda=0.5, c_puct=5, playout_depth=5, n_playout=32):
+    def __init__(self, lmbda=0.5, c_puct=1, n_thr=15, time_limit=10):
         self.root = Node(None, 1.0)
         self.policy_net = network.SLPolicy()
         serializers.load_npz('./models/sl_model.npz', self.policy_net)
@@ -81,8 +87,8 @@ class MCTS(object):
         chainer.config.enable_backprop = False
         self.lmbda = lmbda
         self.c_puct = c_puct
-        self.L = playout_depth
-        self.n_playout = n_playout
+        self.n_thr = n_thr
+        self.time_limit = time_limit
 
     def policy_func(self, state, color, actions):
         state_var = gf.make_state_var(state, color)
@@ -94,38 +100,53 @@ class MCTS(object):
 
     def value_func(self, state, color):
         state_var = gf.make_state_var(state, color)
-        return self.value_net(state_var).data.reshape(1)
+        return self.value_net(state_var).data.reshape(1)[0]
 
-    def playout(self, state, leaf_depth, color):
-        node = self.root
+    def playout(self, state, color, node):
+        node = node
         c = color
-        for i in range(leaf_depth):
-            if node.is_leaf():
-                # a list of tuples of actions and their prior probability
+        if node.is_leaf():
+            if node.n_visits >= self.n_thr:
+            # a list of tuples of actions and their prior probability
                 actions = gf.legal_actions(state, c)
                 if len(actions)<1:
-                    break
-                action_probs = self.policy_func(state, c, actions)
-                node.expand(action_probs)
-            # Greedily select next move.
-            action, node = node.select()
+                    # Pass
+                    node.children[-1] = Node(node, 1)
+                if len(actions)==1:
+                    # Have only one chice
+                    node.children[actions[0]] = Node(node, 1)
+                else:
+                    action_probs = self.policy_func(state, c, actions)
+                    node.expand(action_probs)
+                self.playout(state, c, node)
+            else:
+                v = self.value_func(state, color) if self.lmbda < 1 else 0
+                z = self.evaluate_rollout(state, color) if self.lmbda > 0 else 0
+                leaf_value = (1-self.lmbda)*v + self.lmbda*z
+                # Update value and visit count of nodes in this traversal.
+                node.update_recursive(leaf_value, self.c_puct)
+
+        else:
+            action, node = node.select(self.c_puct)
             state = gf.place_stone(state, action, c)
             c = 3-c
-        v = self.value_func(state, color) if self.lmbda < 1 else 0
-        z = self.evaluate_rollout(state, color) if self.lmbda > 0 else 0
-        leaf_value = (1-self.lmbda)*v + self.lmbda*z
-
-        # Update value and visit count of nodes in this traversal.
-        node.update_recursive(leaf_value, self.c_puct)
+            self.playout(state, c, node)
 
     def evaluate_rollout(self, state, color):
         sim = mcts_self_play.Simulate(state)
         return sim(color)
 
     def get_move(self, state, color):
-        for n in range(self.n_playout):
+        start = time.time()
+        elapsed = 0
+        for k in self.root.children:
+            child = self.root.children[k]
+        while elapsed < self.time_limit:
             state_copy = state.copy()
-            self.playout(state_copy, self.L, color)
+            self.playout(state_copy, color, self.root)
+            elapsed = time.time()-start
+        for k in self.root.children:
+            child = self.root.children[k]
         # chosen action is the *most visited child*, not the highest-value
         return max(self.root.children.items(), key=lambda act_node: act_node[1].n_visits)[0]
 

@@ -19,9 +19,8 @@ Description in Japanese:
 You can set following options:  
 `--auto=False` or `--a=False`  
 If this is set True, autoplay begins between SLPolicy and APV-MCTS, and if False (default), the game is played by you and APV-MCTS.  
-`--level=6`  
-This option is the maximum depth of tree search for APV-MCTS. The higher level means deeper search. Note that there is a trade-off between level (or strength, search depth) and computational complexity (thinking time). The thinking time is exponential to the level. The default value is 6.  
-4. When placing a stone, input two numbers seperated by comma. For example:  
+The thinking time is 10 seconds.  
+4. When placing a stone, input two numbers separated by comma. For example:  
 `4,3`  
 The first number corresponds to the vertical position and the second to the horizontal (one origin).
 
@@ -38,7 +37,7 @@ You need GPUs to complete this step. It will take about 2 days.
 `$ python train_policy.py --policy=rollout --epoch=1 --gpu=0`  
 This is fast.  
 6. Execute train_rl.py to reinforce SL policy network with REINFORCE (a kind of policy gradients).  
-`$ python train_policy.py --set=10000`
+`$ python train_rl.py --set=10000`
 7. Execute train_value.py to train value network.  
 `$ python train_value.py --epoch=20 --gpu=0`  
 8. Training done!

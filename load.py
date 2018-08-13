@@ -23,7 +23,7 @@ def transpose(action):
 
 def main():
     print("Loading data... (it might take a few minutes)")
-    with open("data/data.txt", "r") as f:
+    with open("../policy_data/txt/data.txt", "r") as f:
         data = f.readlines()
 
     # Plays by Black are to be translated into plays by White
@@ -41,11 +41,11 @@ def main():
     states = np.zeros([len_B+len_W, 8, 8])
     actions = np.zeros(len_B+len_W)
     for i in range(0, len_B):
-        states[i,:,:], actions[i] = transform(B_data[i])
+        states[i,:,:], actions[i] = transform(B_data[i]) # As white(2)'s play
     for i in range(len_B, len_B+len_W):
         st, actions[i] = transform(W_data[i-len_B])
         st[np.where(st==0)] = 3
-        states[i,:,:] = 3-st
+        states[i,:,:] = 3-st # As white(2)'s play
     del B_data, W_data # Memory release
 
     # Data augmentation
@@ -78,13 +78,13 @@ def main():
     rands = np.random.choice(data_size, data_size, replace=False)
     S_test = S[rands[:test_size],:,:]
     A_test = A[rands[:test_size]]
-    np.save('data/states_test.npy', S_test)
-    np.save('data/actions_test.npy', A_test)
+    np.save('../policy_data/npy/states_test.npy', S_test)
+    np.save('../policy_data/npy/actions_test.npy', A_test)
     del S_test, A_test
     S_train = S[rands[test_size:],:,:]
     A_train = A[rands[test_size:]]
-    np.save('data/states.npy', S_train)
-    np.save('data/actions.npy', A_train)
+    np.save('../policy_data/npy/states.npy', S_train)
+    np.save('../policy_data/npy/actions.npy', A_train)
     del S, A, S_train, A_train
 
 if __name__ == '__main__':

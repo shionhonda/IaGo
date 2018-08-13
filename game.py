@@ -12,7 +12,7 @@ import MCTS
 
 class Game:
 
-    def __init__(self, auto, level):
+    def __init__(self, auto):
         # Initialize board state
         if auto:
             self.p1 = "IaGo(SLPolicy)"
@@ -33,8 +33,8 @@ class Game:
         self.play_num = 1
         self.pass_flg = False
         self.date = datetime.now().strftime("%Y-%m-%d-%H-%M")
-        self.gamelog = "IaGo level" + str(level) + "\n" + self.date + "\n"
-        self.mcts = MCTS.MCTS(playout_depth=level, n_playout=2**level)
+        self.gamelog = "IaGo \n" + self.date + "\n"
+        self.mcts = MCTS.MCTS()
 
     # Convert ndarray to a board-like string
     def show(self):
@@ -94,6 +94,8 @@ class Game:
     # Get position to place stone
     def get_action_auto(self, color, actions):
         state_var = GameFunctions.make_state_var(self.state, color)
+        if self.stone_num>62 and len(actions)==1:
+            return actions[0]
         # Player1's turn
         if color==1:
             prob = self.model(state_var).data.reshape(64)
@@ -124,16 +126,18 @@ class Game:
             position = [action//8+1, action%8+1]
             print(position)
             self.state = GameFunctions.place_stone(self.state, action, color)
+            self.stone_num += 1
             self.show()
             self.pass_flg = False
             self.gamelog += "[" + str(self.play_num) + "]" + players[color-1]\
              + ": " + str(position) + "\n"
-            self.stone_num += 1
+
         else:
             if self.pass_flg:
                 self.stone_num = 64 # Game over when two players pass consecutively
             print(players[color-1] + " pass.")
             self.pass_flg = True
+            self.mcts.update_with_move(-1)
             self.gamelog += "[" + str(self.play_num) + "]" + players[color-1] + ": Pass\n"
         self.play_num += 1
 
@@ -174,6 +178,8 @@ class GameFunctions:
     # Color  1:white, 2:black
     @classmethod
     def place_stone(self, state, action, color):
+        if action==-1:
+            return state
         # Place the stone
         pos = np.array([action//8, action%8])
         state[pos[0], pos[1]] = color
@@ -235,14 +241,13 @@ class GameFunctions:
 def main():
     parser = argparse.ArgumentParser(description='IaGo:')
     parser.add_argument('--auto', '-a', type=bool, default=False, help='Set True for auto play between MCTS and SLPolicy')
-    parser.add_argument('--level', '-l', type=int, default=6, help='Depth of MCTS playout. Large number makes it stronger but takes more time.')
     args = parser.parse_args()
 
     print("\n"+"*"*34)
     print("*"*11+"Game Start!!"+"*"*11)
     print("*"*34+"\n")
 
-    game = Game(args.auto, args.level)
+    game = Game(args.auto)
     game.show()
 
     while(game.stone_num<64):

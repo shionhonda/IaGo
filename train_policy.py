@@ -33,13 +33,13 @@ def main():
 	optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))
 	cuda.get_device(args.gpu).use()
 
-	test_x = np.load('data/states_test.npy')
-	test_y = np.load('data/actions_test.npy')
-	test_x, test_y = transform(test_x, test_y)
+	X_test = np.load('../policy_data/npy/states_test.npy')
+	y_test = np.load('../policy_data/npy/actions_test.npy')
+	X_test, y_test = transform(X_test, y_test)
 	# Load train dataset
-	train_x = np.load('data/states.npy')
-	train_y = np.load('data/actions.npy')
-	train_size = train_y.shape[0]
+	X_train = np.load('../policy_data/npy/states.npy')
+	y_train = np.load('../policy_data/npy/actions.npy')
+	train_size = y_train.shape[0]
 	minibatch_size = 4096 # 2**12
 
 	# Learing loop
@@ -47,41 +47,41 @@ def main():
 		model.to_gpu(args.gpu)
 		# Shuffle train dataset
 		rands = np.random.choice(train_size, train_size, replace=False)
-		train_x = train_x[rands,:,:]
-		train_y = train_y[rands]
+		X_train = X_train[rands,:,:]
+		y_train = y_train[rands]
 
 		# Minibatch learning
 		for idx in tqdm(range(0, train_size, minibatch_size)):
-			x = train_x[idx:min(idx+minibatch_size, train_size), :, :]
-			y = train_y[idx:min(idx+minibatch_size, train_size)]
+			x = X_train[idx:min(idx+minibatch_size, train_size), :, :]
+			y = y_train[idx:min(idx+minibatch_size, train_size)]
 			x, y = transform(x, y)
-			train_pred = model(x)
-			train_loss = F.softmax_cross_entropy(train_pred, y)
+			pred_train = model(x)
+			loss_train = F.softmax_cross_entropy(pred_train, y)
 			model.cleargrads()
-			train_loss.backward()
+			loss_train.backward()
 			optimizer.update()
 		# Calculate loss
 		with chainer.using_config('train', False):
 			with chainer.using_config('enable_backprop', False):
-				test_pred = model(test_x)
-		test_loss = F.softmax_cross_entropy(test_pred, test_y).data
-		test_acc = F.accuracy(test_pred, test_y).data
-		print('\nepoch :', epoch, '  loss :', test_loss, ' accuracy:', test_acc)
+				pred_test = model(X_test)
+		loss_test = F.softmax_cross_entropy(pred_test, y_test).data
+		test_acc = F.accuracy(pred_test, y_test).data
+		print('\nepoch :', epoch, '  loss :', loss_test, ' accuracy:', test_acc)
 		# Log
 		if args.policy=="rollout":
-			with open("./log_rollout.txt", "a") as f:
-				f.write(str(test_loss) + " : " + str(test_acc) + ", \n")
+			with open("../log/rollout.txt", "a") as f:
+				f.write(str(loss_test) + ", " + str(test_acc) + "\n")
 		else:
-			with open("./log_sl.txt", "a") as f:
-				f.write(str(test_loss) + " : " + str(test_acc) + ", \n")
+			with open("../log/sl.txt", "a") as f:
+				f.write(str(loss_test) + ", " + str(test_acc) + "\n")
 		# Save models
 		model.to_cpu()
 		if args.policy=="rollout":
-			serializers.save_npz('./models/rollout_model.npz', model)
-			serializers.save_npz('./models/rollout_optimizer.npz', optimizer)
+			serializers.save_npz('../models/rollout_model.npz', model)
+			serializers.save_npz('../models/rollout_optimizer.npz', optimizer)
 		else:
-			serializers.save_npz('sl_model.npz', model)
-			serializers.save_npz('sl_optimizer.npz', optimizer)
+			serializers.save_npz('../models/sl_model.npz', model)
+			serializers.save_npz('../models/sl_optimizer.npz', optimizer)
 		# Early stop
 		#if loss<0.94:
 		#	print("Early stop")

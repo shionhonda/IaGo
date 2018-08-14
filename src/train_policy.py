@@ -16,7 +16,7 @@ def transform(x, y):
 def main():
 	# Set the number of epochs and policy to train
 	parser = argparse.ArgumentParser(description='IaGo:')
-	parser.add_argument('--epoch', '-e', type=int, default=30, help='Number of sweeps over the dataset to train')
+	parser.add_argument('--epoch', '-e', type=int, default=10, help='Number of sweeps over the dataset to train')
 	parser.add_argument('--policy', '-p', type=str, default="sl", help='Policy to train: sl or rollout')
 	parser.add_argument('--gpu', '-g', type=int, default="0", help='GPU ID')
 	args = parser.parse_args()
@@ -82,10 +82,6 @@ def main():
 		else:
 			serializers.save_npz('../models/sl_model.npz', model)
 			serializers.save_npz('../models/sl_optimizer.npz', optimizer)
-		# Early stop
-		#if loss<0.94:
-		#	print("Early stop")
-		#	break
 
 if __name__ == '__main__':
     main()

@@ -202,7 +202,7 @@ class GameFunctions:
             if state[ref[0], ref[1]]==color:
                 ref -= [dy, dx]
                 while(state[ref[0], ref[1]]+color==3):
-                    state[ref[0], ref[1]] = 3-state[ref[0], ref[1]]
+                    state[ref[0], ref[1]] = color
                     ref -= [dy, dx]
         return state
 

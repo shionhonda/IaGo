@@ -6,9 +6,7 @@ import copy
 from tqdm import tqdm
 import chainer
 import chainer.functions as F
-import chainer.links as L
 from chainer import serializers, optimizers, Variable
-from chainer.functions.loss.softmax_cross_entropy import softmax_cross_entropy
 import network
 import rl_self_play
 
@@ -22,7 +20,7 @@ def main():
     # Model definition
     model1 = network.SLPolicy()
     serializers.load_npz("../models/RL/model0.npz", model1)
-    optimizer = optimizers.Adam(alpha=0.0005)
+    optimizer = optimizers.Adam()
     optimizer.setup(model1)
     optimizer.add_hook(chainer.optimizer_hooks.WeightDecay(5e-4))
     #serializers.load_npz("./backup/rl_optimizer.npz", optimizer)
@@ -54,20 +52,20 @@ def main():
         # Update model
         x = np.array(state_seq)
         x = np.stack([x==1, x==2], axis=0).astype(np.float32)
-        x = chainer.Variable(x.transpose(1,0,2,3))
+        x = Variable(x.transpose(1,0,2,3))
         y = Variable(np.array(action_seq).astype(np.int32))
         r = Variable(np.array(reward_seq).astype(np.float32))
         pred = model1(x)
-        c  = softmax_cross_entropy(pred, y, reduce="no")
+        c  = F.softmax_cross_entropy(pred, y, reduce="no")
         model1.cleargrads()
         loss = F.mean(c*r)
         loss.backward()
         optimizer.update()
         print("Set:" + str(set) + ", Result:" + str(result/(2*N)) + ", Loss:" + str(loss.data))
-        with open("./log_test.txt", "a") as f:
+        with open("../log/rl.txt", "a") as f:
             f.write(str(result/(2*N)) + ", \n")
 
-        model = copy.deepcopy(model1)
+        #model = copy.deepcopy(model1)
             #model.to_cpu()
         #serializers.save_npz("./backup/model"+str(set)+".npz", model)
         #serializers.save_npz("./backup/optimizer"+str(set)+".npz", optimizer)

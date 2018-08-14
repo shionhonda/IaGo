@@ -1,7 +1,8 @@
-data/
+policy_data/
 .ipynb_checkpoints/
 __pycache__/
 *.ipynb
 gamelog/
+log/
 value_data/
 *.txt

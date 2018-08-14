@@ -34,34 +34,32 @@ class Simulate:
     # Position y:vertical, x:horizontal
     # Color  1:white, 2:black
     @jit
-    def place_stone(self, action, color):
+    def place_stone(self, state, action, color):
         # Place the stone
         pos = np.array([action//8, action%8])
-        self.state[pos[0], pos[1]] = color
+        state[pos[0], pos[1]] = color
         # Search for sandwitched stones
         dys = [-1, -1, -1, 0, 0, 1, 1, 1] # Search direction
         dxs = [-1, 0, 1, -1, 1, -1, 0, 1] # Search direction
-        #for dy,dx in zip(dys, dxs):
-        for i in range(8):
-            dy = dys[0]
-            dx = dxs[0]
+        for dy,dx in zip(dys, dxs):
             if is_outside(pos+[dy,dx]):
                 continue # Search next direction if index goes out of range
-            if self.state[pos[0]+dy, pos[1]+dx]+color!=3:
+            if state[pos[0]+dy, pos[1]+dx]+color!=3:
                 continue # Search next direction if empty or same-color stone
             ref = pos + [dy, dx] # Decide direction
-            while(self.state[ref[0], ref[1]]+color==3):
+            while(state[ref[0], ref[1]]+color==3):
                 ref += [dy, dx] # Referring index
                 if is_outside(ref):
                     break # Stop if referring index goes out of range
             if is_outside(ref):
                 continue # Search next direction if index goes out of range
             # Turn sandwitched stones
-            if self.state[ref[0], ref[1]]==color:
+            if state[ref[0], ref[1]]==color:
                 ref -= [dy, dx]
-                while(self.state[ref[0], ref[1]]+color==3):
-                    self.state[ref[0], ref[1]] = 3-self.state[ref[0], ref[1]]
+                while(state[ref[0], ref[1]]+color==3):
+                    state[ref[0], ref[1]] = color
                     ref -= [dy, dx]
+        return state
 
     def legal_actions(self, color):
         actions = []
@@ -127,7 +125,7 @@ class Simulate:
         actions = self.legal_actions(color)
         if len(actions)>0:
             action = self.get_action(color, actions)
-            self.place_stone(action, color)
+            self.state = self.place_stone(self.state, action, color)
             self.pass_flg = False
             self.stone_num += 1
         else:

@@ -122,8 +122,8 @@ class Game:
         action = np.random.choice(64, p=prob/np.sum(prob))
         if not action in actions:
             # Choose again if prediction is illegal
-            return self.get_action(color, actions)
-            #return random.choice(positions)
+            #return self.get_action(color, actions)
+            return random.choice(actions)
         return action
 
     # Things to do in one turn

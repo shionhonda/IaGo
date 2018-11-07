@@ -21,7 +21,7 @@ class Game:
         else:
             self.p1 = "You"
             self.model = None
-        self.p2 = "IaGo(APV-MCTS)"
+        self.p2 = "IaGo(PV-MCTS)"
 
         self.state = np.zeros([8, 8], dtype=np.float32)
         self.state[4, 3] = 1

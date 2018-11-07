@@ -103,7 +103,7 @@ class MCTS(object):
         return self.value_net(state_var).data.reshape(1)[0]
 
     def playout(self, state, color, node):
-        node = node
+        node = node.copy()
         c = color
         if node.is_leaf():
             if node.n_visits >= self.n_thr:
@@ -139,14 +139,10 @@ class MCTS(object):
     def get_move(self, state, color):
         start = time.time()
         elapsed = 0
-        for k in self.root.children:
-            child = self.root.children[k]
         while elapsed < self.time_limit:
             state_copy = state.copy()
             self.playout(state_copy, color, self.root)
             elapsed = time.time()-start
-        for k in self.root.children:
-            child = self.root.children[k]
         # chosen action is the *most visited child*, not the highest-value
         return max(self.root.children.items(), key=lambda act_node: act_node[1].n_visits)[0]
 
